@@ -8,7 +8,7 @@ It features a DSL-driven structure, interactive mode, progress bars, colorful ou
 ## 📜 Table of Contents
 
 - [Installation](#-installation)
-- [Quick Start](#-quick-start)
+- [Quick Start](#%EF%B8%8F-quick-start)
 - [Features](#-features)
   - [Basic CLI Setup](#-basic-cli-setup)
   - [Adding Commands](#-adding-commands)
