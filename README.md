@@ -7,18 +7,18 @@ It features a DSL-driven structure, interactive mode, progress bars, colorful ou
 
 ## 📜 Table of Contents
 
-- [Installation](#🚀-installation)
-- [Quick Start](#⚡%ef%b8%8f-quick-start)
-- [Features](#🌟-features)
-  - [Basic CLI Setup](#🔹-basic-cli-setup)
-  - [Adding Commands](#🔹-adding-commands)
-  - [Interactive Mode](#🔹-interactive-mode)
-  - [User Input Scenarios](#🔹-user-input-scenarios)
-  - [Progress Bar Support](#🔹-progress-bar-support)
-  - [Colorful Text Printing](#🔹-colorful-text-printing)
+- [Installation](#-installation)
+- [Quick Start](#%ef%b8%8f-quick-start)
+- [Features](#-features)
+  - [Basic CLI Setup](#-basic-cli-setup)
+  - [Adding Commands](#-adding-commands)
+  - [Interactive Mode](#-interactive-mode)
+  - [User Input Scenarios](#-user-input-scenarios)
+  - [Progress Bar Support](#-progress-bar-support)
+  - [Colorful Text Printing](#-colorful-text-printing)
 - [Configuration Options](#⚙%ef%b8%8f-configuration-options)
-- [Available Progress Types](#🧹-available-progress-types)
-- [License](#📄-license)
+- [Available Progress Types](#-available-progress-types)
+- [License](#-license)
 
 ---
 
