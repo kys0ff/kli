@@ -1,5 +1,11 @@
+@file:Suppress("SpellCheckingInspection")
+
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
+
 plugins {
     kotlin("jvm") version "2.0.21"
+    id("com.github.johnrengelman.shadow") version "7.1.2"
     `maven-publish`
 }
 
@@ -12,6 +18,7 @@ repositories {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation(kotlin("stdlib"))
     testImplementation(kotlin("test"))
 }
 
@@ -23,12 +30,20 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks {
+    withType<ShadowJar> {
+        archiveFileName.set("kli-1.0.0.jar")
+
+        manifest { attributes("Main-Class" to "off.kys.MainKt") }
+    }
+}
+
 publishing {
     publications {
         create<MavenPublication>("gpr") {
             from(components["java"])
 
-            groupId = "off.kys.kli"
+            groupId = "off.kys"
             artifactId = "kli"
             version = "1.0.0"
         }

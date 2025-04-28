@@ -5,14 +5,17 @@ package off.kys.kli.dsl
 import off.kys.kli.core.Command
 import off.kys.kli.core.KliConfig
 import off.kys.kli.io.AnsiColor
-import off.kys.kli.io.InputReader
+import off.kys.kli.io.readInput
 import off.kys.kli.parser.ArgParser
 import off.kys.kli.utils.extensions.State
 import off.kys.kli.utils.extensions.color
 import off.kys.kli.utils.extensions.println
+import java.io.Console
 
 class KliDsl(private val config: KliConfig = KliConfig()) {
     private val commands = mutableListOf<Command>()
+    val console: Console?
+        get() = System.console()
 
     fun configure(block: KliConfig.() -> Unit) = config.apply(block)
 
@@ -61,9 +64,9 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
 
         while (true) {
             val input = if (config.showPrompt) {
-                InputReader.readInput(config.name, config.promptColor).trim()
+                readInput(config.name, config.promptColor).trim()
             } else {
-                InputReader.readInput("").trim()
+                readInput("").trim()
             }
 
             when {
