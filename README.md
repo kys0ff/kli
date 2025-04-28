@@ -24,18 +24,11 @@ It features a DSL-driven structure, interactive mode, progress bars, colorful ou
 
 ## 🚀 Installation
 
-**Add to your `libs.versions.toml`:**
-
-```toml
-[libraries]
-kli = { group = "off.kys", name = "kli", version = "1.0.0" }
-```
-
-And in your `build.gradle.kts`:
+**Add to your `build.gradle.kts`:**
 
 ```kotlin
 dependencies {
-    implementation(libs.kli)
+    implementation("com.github.kys0ff:kli:v0.1.0")
 }
 ```
 
