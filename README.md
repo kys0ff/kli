@@ -16,7 +16,7 @@ It features a DSL-driven structure, interactive mode, progress bars, colorful ou
   - [User Input Scenarios](#-user-input-scenarios)
   - [Progress Bar Support](#-progress-bar-support)
   - [Colorful Text Printing](#-colorful-text-printing)
-- [Configuration Options](#-configuration-options)
+- [Configuration Options](#-%EF%B8%8F-configuration-options)
 - [Available Progress Types](#-available-progress-types)
 - [License](#-license)
 
