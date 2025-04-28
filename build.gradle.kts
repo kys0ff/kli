@@ -2,14 +2,13 @@
 
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
-
 plugins {
     kotlin("jvm") version "2.0.21"
     id("com.github.johnrengelman.shadow") version "7.1.2"
     `maven-publish`
 }
 
-group = "off.kys.kli"
+group = "com.github.kys0ff"
 version = "1.0.0"
 
 repositories {
@@ -30,33 +29,26 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks {
-    withType<ShadowJar> {
-        archiveFileName.set("kli-1.0.0.jar")
-
-        manifest { attributes("Main-Class" to "off.kys.MainKt") }
+tasks.withType<ShadowJar> {
+    archiveClassifier.set("")
+    manifest {
+        attributes["Main-Class"] = "off.kys.MainKt"
     }
 }
 
 publishing {
     publications {
-        create<MavenPublication>("gpr") {
+        create<MavenPublication>("maven") {
             from(components["java"])
 
-            groupId = "off.kys"
+            groupId = "com.github.kys0ff"
             artifactId = "kli"
             version = "1.0.0"
-        }
-    }
 
-    repositories {
-        maven {
-            name = "kli"
-            url = uri("https://maven.pkg.github.com/kys0ff/kli")
-
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("TOKEN")
+            pom {
+                name.set("kli")
+                description.set("Kli is a minimal and expressive Kotlin library for building command-line applications.")
+                url.set("https://github.com/kys0ff/kli")
             }
         }
     }
