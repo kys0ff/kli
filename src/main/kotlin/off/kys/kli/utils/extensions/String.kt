@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package off.kys.kli.utils.extensions
 
 import off.kys.kli.io.AnsiColor

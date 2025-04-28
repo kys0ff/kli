@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package off.kys.kli.ui.progress.util
 
 enum class SpinnerStyle(val frames: List<String>, val intervalMs: Int = 100) {
