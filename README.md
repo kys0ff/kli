@@ -108,17 +108,17 @@ command("sum") {
 When no arguments are passed, CLI enters interactive mode automatically. Missing arguments can be interactively requested:
 
 ```kotlin
-import off.kys.kli.io.InputReader
+import off.kys.kli.io.readInput
 
 command("multiply") {
     description = "Multiplies two numbers interactively if missing."
 
     action { cliArgs ->
         val x = cliArgs["num1"]?.toIntOrNull()
-            ?: InputReader.readInput("Enter first number: ").toIntOrNull() ?: 1
+            ?: readInput("Enter first number: ").toIntOrNull() ?: 1
 
         val y = cliArgs["num2"]?.toIntOrNull()
-            ?: InputReader.readInput("Enter second number: ").toIntOrNull() ?: 1
+            ?: readInput("Enter second number: ").toIntOrNull() ?: 1
 
         println("Result: ${x * y}")
     }
@@ -149,7 +149,7 @@ command("setPassword") {
     description = "Set a secure password."
 
     action {
-        val password = InputReader.readPassword("Enter your password:")
+        val password = readPassword("Enter your password:")
         println("Your password has been set!")
     }
 }
@@ -162,7 +162,7 @@ command("delete") {
     description = "Delete a file after confirmation."
 
     action {
-        if (InputReader.confirm("Are you sure you want to delete this file?")) {
+        if (confirm("Are you sure you want to delete this file?")) {
             println("File deleted!")
         } else {
             println("Operation cancelled.")
@@ -179,7 +179,7 @@ command("chooseColor") {
 
     action {
         val colors = listOf("Red", "Green", "Blue", "Yellow")
-        val selectedColor = InputReader.select(colors)
+        val selectedColor = select(colors)
         println("You selected: $selectedColor")
     }
 }
@@ -193,7 +193,7 @@ command("chooseFruit") {
 
     action {
         val fruits = listOf("Apple", "Banana", "Cherry", "Date")
-        val selectedFruit = InputReader.selectMenu("Pick your favorite fruit:", fruits)
+        val selectedFruit = selectMenu("Pick your favorite fruit:", fruits)
         println("You chose: $selectedFruit!")
     }
 }
