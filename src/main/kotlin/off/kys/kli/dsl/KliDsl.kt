@@ -13,7 +13,7 @@ import off.kys.kli.utils.extensions.println
 import java.io.Console
 
 /**
- * A Domain-Specific Language (DSL) class for building and managing a Command Line Interface (CLI) tool.
+ * A Domain-Specific Language (DSL) class for building and managing a off.kys.kli.core.Command Line Interface (CLI) tool.
  *
  * This class allows configuring commands, handling arguments, and switching between interactive and argument-based modes.
  *
@@ -43,7 +43,7 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
      * Commands are added to the list of available commands for the CLI tool.
      *
      * @param name The name of the command.
-     * @param config The configuration block to modify the `Command` instance.
+     * @param config The configuration block to modify the `off.kys.kli.core.Command` instance.
      */
     fun command(name: String, config: Command.() -> Unit) = commands.add(Command(name).apply(config))
 
@@ -62,12 +62,20 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
     private fun processArguments(args: Array<String>) {
         val cliArgs = ArgParser.from(args)
         val cmdName = cliArgs.getParams().firstOrNull()
+
+        // If first argument is "help" (or --help / -h)
+        when (args.firstOrNull()?.lowercase()) {
+            "help", "--help", "-h" -> {
+                showHelp()
+                return
+            }
+        }
+
         val cmd = commands.find { it.name == cmdName }
 
         when {
             cliArgs.getFlag("version") -> showVersion() // Show version if the flag is present.
             cmd != null -> handleCommandExecution(cliArgs) // Execute command if it exists.
-            cliArgs.getFlag("help") -> showHelp() // Show help if requested.
             else -> {
                 println("Invalid usage", State.ERROR) // Show error message for invalid arguments.
                 if (config.showUsageOnError) showHelp() // Optionally show usage on error.
@@ -87,7 +95,7 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
                 cmd.execute(args) // Execute the command.
             }
         } else {
-            println("Command not found: '${cmdName ?: ""}'", State.ERROR) // Command not found error.
+            println("off.kys.kli.core.Command not found: '${cmdName ?: ""}'", State.ERROR) // off.kys.kli.core.Command not found error.
             if (config.showUsageOnError) showHelp() // Optionally show usage on error.
         }
     }
@@ -148,11 +156,34 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
     }
 
     // Displays the general help message for the CLI tool.
+    // Displays the general help message for the CLI tool.
     private fun showHelp() {
-        println("${config.name} - ${config.description}", AnsiColor.BRIGHT_WHITE)
-        println("Usage:", AnsiColor.BRIGHT_WHITE)
-        println("  <command> [arguments] [options]")
+        // Header
+        println("${config.name.color(AnsiColor.BRIGHT_YELLOW)} - ${config.description.color(AnsiColor.BRIGHT_WHITE)}")
         println()
-        showInteractiveHelp() // Show interactive help for CLI commands.
+
+        // Usage
+        println("Usage:".color(AnsiColor.BRIGHT_GREEN))
+        println("  <command> [arguments] [options]".color(AnsiColor.BRIGHT_WHITE))
+        println()
+
+        // Available Commands
+        println("Commands:".color(AnsiColor.BRIGHT_CYAN))
+        commands.forEach { cmd ->
+            println("  ${cmd.name.color(AnsiColor.BRIGHT_MAGENTA).padEnd(15)} ${cmd.description.color(AnsiColor.BRIGHT_BLACK)}")
+        }
+        println()
+
+        // Flags
+        println("Global Options:".color(AnsiColor.BRIGHT_CYAN))
+        println("  --help, -h        ".color(AnsiColor.BRIGHT_MAGENTA) + "Show this help message")
+        println("  --version         ".color(AnsiColor.BRIGHT_MAGENTA) + "Show version info")
+        println()
+
+        // Tips
+        println("Tips:".color(AnsiColor.BRIGHT_GREEN))
+        println("  Type '${"help".color(AnsiColor.BRIGHT_YELLOW)}' in interactive mode to list commands.")
+        println("  Use '${"--help".color(AnsiColor.BRIGHT_YELLOW)}' after any command to get command-specific help.")
+        println()
     }
 }

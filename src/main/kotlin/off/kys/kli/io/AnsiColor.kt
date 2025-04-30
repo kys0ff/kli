@@ -100,5 +100,82 @@ sealed class AnsiColor(open val code: String) {
          */
         fun colorize(text: String, color: AnsiColor): String =
             "${color.code}$text${RESET.code}"
+
+
+        /**
+         * Creates a 256-color ANSI code (foreground).
+         *
+         * @param colorCode The 256-color palette index (0-255).
+         * @return An `AnsiColor` object for the given 256-color code.
+         */
+        fun color256(colorCode: Int): AnsiColor {
+            require(colorCode in 0..255) { "256-color code must be in range 0-255." }
+            return Custom("\u001B[38;5;${colorCode}m")
+        }
+
+        /**
+         * Creates a 256-color ANSI code (background).
+         *
+         * @param colorCode The 256-color palette index (0-255).
+         * @return An `AnsiColor` object for the given 256-color background.
+         */
+        fun bgColor256(colorCode: Int): AnsiColor {
+            require(colorCode in 0..255) { "256-color code must be in range 0-255." }
+            return Custom("\u001B[48;5;${colorCode}m")
+        }
+
+        /**
+         * Creates a truecolor (24-bit RGB) ANSI code (foreground).
+         *
+         * @param r Red component (0-255).
+         * @param g Green component (0-255).
+         * @param b Blue component (0-255).
+         * @return An `AnsiColor` object for the given RGB color.
+         */
+        @JvmStatic
+        fun rgb(r: Int, g: Int, b: Int): AnsiColor {
+            require(r in 0..255 && g in 0..255 && b in 0..255) { "RGB values must be in 0-255." }
+            return Custom("\u001B[38;2;${r};${g};${b}m")
+        }
+
+        /**
+         * Creates a truecolor (24-bit RGB) ANSI code (background).
+         *
+         * @param r Red component (0-255).
+         * @param g Green component (0-255).
+         * @param b Blue component (0-255).
+         * @return An `AnsiColor` object for the given RGB background color.
+         */
+        @JvmStatic
+        fun bgRgb(r: Int, g: Int, b: Int): AnsiColor {
+            require(r in 0..255 && g in 0..255 && b in 0..255) { "RGB values must be in 0-255." }
+            return Custom("\u001B[48;2;${r};${g};${b}m")
+        }
+
+        /**
+         * Creates a truecolor (24-bit RGB) ANSI code from a hex color Int (e.g., 0xRRGGBB or 0xAARRGGBB).
+         *
+         * @param color Int color. If it’s 0xAARRGGBB, alpha will be ignored.
+         * @return An `AnsiColor` object for the RGB color.
+         */
+        fun rgbHex(color: Int): AnsiColor {
+            val r = (color shr 16) and 0xFF
+            val g = (color shr 8) and 0xFF
+            val b = color and 0xFF
+            return rgb(r, g, b)
+        }
+
+        /**
+         * Creates a truecolor (24-bit RGB) background ANSI code from a hex color Int.
+         *
+         * @param color Int color. If it’s 0xAARRGGBB, alpha will be ignored.
+         * @return An `AnsiColor` object for the RGB background color.
+         */
+        fun bgRgbHex(color: Int): AnsiColor {
+            val r = (color shr 16) and 0xFF
+            val g = (color shr 8) and 0xFF
+            val b = color and 0xFF
+            return bgRgb(r, g, b)
+        }
     }
 }

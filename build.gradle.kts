@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.github.kys0ff"
-version = "1.0.0"
+version = "v0.1.1"
 
 repositories {
     mavenCentral()
@@ -43,7 +43,7 @@ publishing {
 
             groupId = "com.github.kys0ff"
             artifactId = "kli"
-            version = "1.0.0"
+            version = "v0.1.1"
 
             pom {
                 name.set("kli")

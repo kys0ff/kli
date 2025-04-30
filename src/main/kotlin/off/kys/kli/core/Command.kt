@@ -1,69 +1,119 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
-
 package off.kys.kli.core
 
 import off.kys.kli.io.AnsiColor
 import off.kys.kli.parser.ArgParser
 import off.kys.kli.utils.Args
+import off.kys.kli.utils.extensions.State
+import off.kys.kli.utils.extensions.color
 import off.kys.kli.utils.extensions.println
 
 /**
- * Represents a command within the KLI (Command Line Interface).
+ * Represents a CLI command in the KLI framework.
  *
- * A `Command` consists of a name, an optional description, and an action to execute
- * when the command is triggered. The command can be executed with arguments, and it
- * provides a method to display help information to guide users on its usage.
- *
- * **Properties**:
- * - `name`: The name of the command (e.g., `help`, `version`).
- * - `description`: A description of what the command does. By default, it's an empty string.
- * - `action`: A function that defines what happens when the command is executed. It takes parsed arguments as input.
- *
- * **Methods**:
- * - `action`: Defines the action to be performed when this command is executed. The block passed to it receives the parsed arguments.
- * - `execute`: Executes the command's action with the provided parsed arguments.
- * - `showHelp`: Displays the help information for the command, including its name, description, usage, and available options.
+ * Each command has:
+ * - a name (e.g., "init", "build")
+ * - optional description
+ * - configurable arguments and flags
+ * - an executable action block
  */
-class Command(
-    val name: String, // Name of the command
-) {
-    private var action: (ArgParser) -> Unit = {} // The action to be executed when this command is called
+class Command(val name: String) {
+    /** Description of the command shown in help text */
+    var description: String = ""
 
-    var description: String = "" // Description of what this command does
+    /** List of registered positional arguments for the command */
+    private val arguments = mutableListOf<Argument>()
+
+    /** List of registered flags (options starting with --) */
+    private val flags = mutableListOf<Flag>()
+
+    /** The main logic to execute when this command is run */
+    private var action: (ArgParser) -> Unit = {}
 
     /**
-     * Defines the action to run when this command is executed.
+     * Adds a positional argument to this command.
      *
-     * @param block The block of code that specifies what should happen when this command is triggered.
+     * @param name The name of the argument (e.g., "filename")
+     * @param description Optional description for help display
+     */
+    fun argument(name: String, description: String = "") {
+        arguments.add(Argument(name, description))
+    }
+
+    /**
+     * Adds a flag (option) to this command.
+     *
+     * @param name The name of the flag (without "--")
+     * @param description Optional description for help display
+     */
+    fun flag(name: String, description: String = "") {
+        flags.add(Flag(name, description))
+    }
+
+    /**
+     * Sets the action block to execute when this command runs.
+     *
+     * @param block The logic, receiving parsed args
      */
     fun action(block: (Args) -> Unit) {
-        action = block // Assign the block as the action for this command
+        action = block
     }
 
     /**
-     * Executes the assigned action with the given parsed arguments.
+     * Executes the command with provided parsed arguments.
      *
-     * @param args The arguments that were parsed for this command.
+     * @param args The parsed arguments and flags
      */
-    fun execute(args: ArgParser) = action(args) // Run the action with the arguments
+    fun execute(args: ArgParser) = action(args)
 
     /**
-     * Displays help information for this command.
-     *
-     * This will show the command's name, description, and usage details including available options.
+     * Prints formatted help text for this command, showing usage,
+     * arguments, flags, and built-in flags like --help and --version.
      */
     fun showHelp() {
-        println("Command: $name", AnsiColor.BRIGHT_WHITE) // Print command name in white
-        if (description.isNotBlank()) {
-            println("Description: $description", AnsiColor.BRIGHT_BLACK) // Print description if available
-        } else {
-            println("No description available.", AnsiColor.BRIGHT_BLACK) // Default message when no description is set
+        // Usage line
+        println("Usage: ${name.color(AnsiColor.BRIGHT_CYAN)} [options]", State.INFO)
+        println()
+
+        // Description block
+        if (description.isNotEmpty()) {
+            println(description, AnsiColor.BRIGHT_WHITE)
         }
-        println()
-        println("Usage:", AnsiColor.BRIGHT_CYAN) // Usage info in cyan color
-        println("  $name [options]") // Command usage format
-        println()
-        println("Options:", AnsiColor.BRIGHT_CYAN) // Available options header
-        println("  --help, -h       Show command help") // Help flag option
+
+        // Arguments block
+        if (arguments.isNotEmpty()) {
+            println("\nArguments:", AnsiColor.BRIGHT_YELLOW)
+            arguments.forEach {
+                val argName = it.name.color(AnsiColor.BRIGHT_CYAN)
+                val desc = it.description.color(AnsiColor.BRIGHT_BLACK)
+                println("  $argName  $desc")
+            }
+        }
+
+        // Flags block
+        if (flags.isNotEmpty()) {
+            println("\nFlags:", AnsiColor.BRIGHT_YELLOW)
+            flags.forEach {
+                val flagName = "--${it.name}".color(AnsiColor.BRIGHT_GREEN)
+                val desc = it.description.color(AnsiColor.BRIGHT_BLACK)
+                println("  $flagName  $desc")
+            }
+        }
+
+        // Built-in flags (always present)
+        println("\nBuiltin Flags:".color(AnsiColor.BRIGHT_YELLOW))
+
+        val helpFlag = "--help".color(AnsiColor.BRIGHT_GREEN)
+        val helpDesc = "Show this help message and exit.".color(AnsiColor.BRIGHT_BLACK)
+        println("  $helpFlag  $helpDesc")
+
+        val versionFlag = "--version".color(AnsiColor.BRIGHT_GREEN)
+        val versionDesc = "Show version information and exit.".color(AnsiColor.BRIGHT_BLACK)
+        println("  $versionFlag  $versionDesc")
     }
+
+    /** Represents a positional argument */
+    private data class Argument(val name: String, val description: String)
+
+    /** Represents a flag/option (e.g., --verbose) */
+    private data class Flag(val name: String, val description: String)
 }

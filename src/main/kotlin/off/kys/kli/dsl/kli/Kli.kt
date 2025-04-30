@@ -5,7 +5,7 @@ import off.kys.kli.dsl.markers.KliMarker
 import off.kys.kli.utils.KliScope
 
 /**
- * A function to initialize and execute a KLI (Command Line Interface) application.
+ * A function to initialize and execute a KLI (off.kys.kli.core.Command Line Interface) application.
  *
  * This function sets up a new instance of the KLI DSL (`KliDsl`), applies a configuration block
  * to it, and then executes the KLI with the provided command-line arguments (`args`).

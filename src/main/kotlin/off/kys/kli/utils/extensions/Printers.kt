@@ -40,7 +40,7 @@ fun print(message: String, color: AnsiColor): Unit = print(message.color(color))
 fun println(message: String, state: State) = println(
     message, when (state) {
         State.SUCCESS -> AnsiColor.BRIGHT_GREEN
-        State.ERROR -> AnsiColor.BRIGHT_RED
+        State.ERROR -> AnsiColor.RED
         State.WARNING -> AnsiColor.BRIGHT_YELLOW
         State.INFO -> AnsiColor.BRIGHT_CYAN
     }
@@ -64,7 +64,7 @@ fun println(message: String, state: State) = println(
 fun print(message: String, state: State) = print(
     message, when (state) {
         State.SUCCESS -> AnsiColor.BRIGHT_GREEN
-        State.ERROR -> AnsiColor.BRIGHT_RED
+        State.ERROR -> AnsiColor.RED
         State.WARNING -> AnsiColor.BRIGHT_YELLOW
         State.INFO -> AnsiColor.BRIGHT_CYAN
     }

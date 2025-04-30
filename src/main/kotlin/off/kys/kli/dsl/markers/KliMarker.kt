@@ -1,7 +1,7 @@
 package off.kys.kli.dsl.markers
 
 /**
- * A custom DSL marker annotation used to mark functions related to the KLI (Command Line Interface) DSL.
+ * A custom DSL marker annotation used to mark functions related to the KLI (off.kys.kli.core.Command Line Interface) DSL.
  *
  * This annotation is applied to functions that are part of the KLI DSL (like commands, options, or input parsing).
  * It ensures that functions within the KLI DSL are properly scoped, preventing accidental cross-referencing of functions

@@ -3,7 +3,7 @@ package off.kys.kli.core
 import off.kys.kli.io.AnsiColor
 
 /**
- * Represents the configuration for the KLI (Command Line Interface).
+ * Represents the configuration for the KLI (off.kys.kli.core.Command Line Interface).
  *
  * The `KliConfig` class allows customization of the CLI tool's behavior, appearance,
  * and interactive mode. This includes options like displaying messages, customizing
