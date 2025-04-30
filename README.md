@@ -28,7 +28,7 @@ It features a DSL-driven structure, interactive mode, progress bars, colorful ou
 
 ```kotlin
 dependencies {
-    implementation("com.github.kys0ff:kli:v0.1.0")
+    implementation("com.github.kys0ff:kli:[latest_version]")
 }
 ```
 
