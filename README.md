@@ -24,7 +24,27 @@ It features a DSL-driven structure, interactive mode, progress bars, colorful ou
 
 ## 🚀 Installation
 
-**Add to your `build.gradle.kts`:**
+**First, add the JitPack repository to your `settings.gradle.kts`:**
+
+```kotlin
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+```
+
+**Then, add the dependency to your `build.gradle.kts`:**
 
 ```kotlin
 dependencies {
