@@ -24,11 +24,31 @@ It features a DSL-driven structure, interactive mode, progress bars, colorful ou
 
 ## 🚀 Installation
 
-**Add to your `build.gradle.kts`:**
+**First, add the JitPack repository to your `settings.gradle.kts`:**
+
+```kotlin
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        google()
+        mavenCentral()
+        maven("https://jitpack.io")
+    }
+}
+```
+
+**Then, add the dependency to your `build.gradle.kts`:**
 
 ```kotlin
 dependencies {
-    implementation("com.github.kys0ff:kli:v0.1.0")
+    implementation("com.github.kys0ff:kli:[latest_version]")
 }
 ```
 
@@ -37,22 +57,36 @@ dependencies {
 ## ⚡️ Quick Start
 
 ```kotlin
-import off.kys.kli.dsl.kli
+import off.kys.kli.dsl.kli.kli
+import off.kys.kli.io.AnsiColor
+import off.kys.kli.io.readInputOrNull
+import off.kys.kli.utils.KliScope
 
 fun main(args: Array<String>) = kli(args) {
     configure {
         name = "MyCli"
-        version = "0.1.0"
+        version = "0.1.1"
         description = "My first CLI app!"
     }
 
-    command("greet") {
-        description = "Greets a user."
+    greetCommand()
+}
 
-        action { cliArgs ->
-            val name = cliArgs.getParams().getOrNull(1) ?: "World"
-            println("Hello, $name!")
-        }
+fun KliScope.greetCommand() = command("greet") {
+    description = "Greets the user"
+
+    // Register args and flags for better --help output
+    argument("name", "The name to greet")
+    flag("shout", "Shout the greeting")
+
+    action { args ->
+        val name = args.getParams().getOrNull(1)
+            ?: readInputOrNull("Enter your name", AnsiColor.CYAN) ?: "stranger"
+
+        val greeting = "Hello, $name"
+        if (args.getFlag("shout"))
+            println(greeting.uppercase())
+        else println(greeting)
     }
 }
 ```
@@ -61,7 +95,23 @@ Example run:
 
 ```
 ./your-app greet John
-# ➔ prints Hello, John!
+# ➔ prints Hello, John
+
+./your-app greet John --shout
+# ➔ prints HELLO, JOHN
+```
+If you skip the name:
+
+```bash
+./your-app greet
+Enter your name: Alice
+Hello, Alice
+```
+
+Check available commands:
+
+```bash
+./your-app --help
 ```
 
 ---
@@ -86,9 +136,13 @@ configure {
 command("sum") {
     description = "Adds two numbers."
 
+    // Register args
+    argument("x", "First number")
+    argument("y", "Second number")
+
     action { cliArgs ->
-        val x = cliArgs.getParams().getOrNull(1)?.toIntOrNull() ?: 0
-        val y = cliArgs.getParams().getOrNull(2)?.toIntOrNull() ?: 0
+        val x = cliArgs["x"]?.toIntOrNull() ?: 0
+        val y = cliArgs["y"]?.toIntOrNull() ?: 0
         println("Sum: ${x + y}")
     }
 }
@@ -141,11 +195,24 @@ Goodbye!
 command("setPassword") {
     description = "Set a secure password."
 
-    action {
-        val password = readPassword("Enter your password:")
-        println("Your password has been set!")
+    action { 
+        val password = readPassword("Enter your password")
+        if (password.isNullOrBlank()) {
+            println("Password not set. Operation cancelled.")
+        } else {
+            println("Your password has been set!")
+            // You can store or hash the password here
+        }
     }
 }
+```
+
+Example run:
+
+```pgsql
+./your-app setPassword
+Enter your password: ••••••
+Your password has been set!
 ```
 
 #### Confirmation Prompt
@@ -154,9 +221,18 @@ command("setPassword") {
 command("delete") {
     description = "Delete a file after confirmation."
 
-    action {
-        if (confirm("Are you sure you want to delete this file?")) {
-            println("File deleted!")
+    argument("file", "The file path to delete")
+    flag("force", "Skip confirmation")
+
+    action { args ->
+        val filePath = args.getParams().getOrNull(1)
+            ?: readInputOrNull("Enter file path to delete") ?: return@action
+
+        val shouldDelete = args.getFlag("force")
+            || confirm("Are you sure you want to delete '$filePath'?")
+
+        if (shouldDelete) {
+            println("File '$filePath' deleted!") // Replace with actual file delete logic
         } else {
             println("Operation cancelled.")
         }
@@ -170,10 +246,12 @@ command("delete") {
 command("chooseColor") {
     description = "Choose a color from the list."
 
-    action {
+    argument("color", "Color name (Red, Green, Blue, Yellow)")
+
+    action { args ->
         val colors = listOf("Red", "Green", "Blue", "Yellow")
-        val selectedColor = select(colors)
-        println("You selected: $selectedColor")
+        val inputColor = args["color"] ?: select(colors)
+        println("You selected: $inputColor")
     }
 }
 ```
@@ -184,9 +262,11 @@ command("chooseColor") {
 command("chooseFruit") {
     description = "Select your favorite fruit from the menu."
 
-    action {
+    argument("fruit", "Fruit name (Apple, Banana, Cherry, Date)")
+
+    action { args ->
         val fruits = listOf("Apple", "Banana", "Cherry", "Date")
-        val selectedFruit = selectMenu("Pick your favorite fruit:", fruits)
+        val selectedFruit = args["fruit"] ?: selectMenu("Pick your favorite fruit:", fruits)
         println("You chose: $selectedFruit!")
     }
 }
@@ -248,6 +328,7 @@ println("An error occurred!", State.ERROR)
 import off.kys.kli.io.AnsiColor
 
 println(AnsiColor.colorize("Important!", AnsiColor.BRIGHT_RED))
+println("Important!", AnsiColor.RED)
 ```
 
 ---
