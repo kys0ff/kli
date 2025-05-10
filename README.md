@@ -18,6 +18,7 @@ It features a DSL-driven structure, interactive mode, progress bars, colorful ou
   - [Colorful Text Printing](#-colorful-text-printing)
 - [Configuration Options](#%EF%B8%8F-configuration-options)
 - [Available Progress Types](#-available-progress-types)
+- [Extension Functions for String Colorization](#-extension-functions-for-string-colorization)
 - [License](#-license)
 
 ---
@@ -65,7 +66,7 @@ import off.kys.kli.utils.KliScope
 fun main(args: Array<String>) = kli(args) {
     configure {
         name = "MyCli"
-        version = "0.1.1"
+        version = "0.1.3"
         description = "My first CLI app!"
     }
 
@@ -79,12 +80,11 @@ fun KliScope.greetCommand() = command("greet") {
     argument("name", "The name to greet")
     flag("shout", "Shout the greeting")
 
-    action { args ->
-        val name = args.getParams().getOrNull(1)
-            ?: readInputOrNull("Enter your name", AnsiColor.CYAN) ?: "stranger"
-
+    action {
+        val name = param(1) ?: readInputOrNull("Enter your name", AnsiColor.CYAN) ?: "stranger"
+        
         val greeting = "Hello, $name"
-        if (args.getFlag("shout"))
+        if (getFlag("shout"))
             println(greeting.uppercase())
         else println(greeting)
     }
@@ -140,9 +140,9 @@ command("sum") {
     argument("x", "First number")
     argument("y", "Second number")
 
-    action { cliArgs ->
-        val x = cliArgs["x"]?.toIntOrNull() ?: 0
-        val y = cliArgs["y"]?.toIntOrNull() ?: 0
+    action {
+        val x = get("x")?.toIntOrNull() ?: 0
+        val y = get("y")?.toIntOrNull() ?: 0
         println("Sum: ${x + y}")
     }
 }
@@ -160,11 +160,11 @@ import off.kys.kli.io.readInput
 command("multiply") {
     description = "Multiplies two numbers interactively if missing."
 
-    action { cliArgs ->
-        val x = cliArgs["num1"]?.toIntOrNull()
+    action {
+        val x = get("num1")?.toIntOrNull()
             ?: readInput("Enter first number: ").toIntOrNull() ?: 1
 
-        val y = cliArgs["num2"]?.toIntOrNull()
+        val y = get("num2")?.toIntOrNull()
             ?: readInput("Enter second number: ").toIntOrNull() ?: 1
 
         println("Result: ${x * y}")
@@ -224,11 +224,11 @@ command("delete") {
     argument("file", "The file path to delete")
     flag("force", "Skip confirmation")
 
-    action { args ->
-        val filePath = args.getParams().getOrNull(1)
+    action {
+        val filePath = param()
             ?: readInputOrNull("Enter file path to delete") ?: return@action
 
-        val shouldDelete = args.getFlag("force")
+        val shouldDelete = getFlag("force")
             || confirm("Are you sure you want to delete '$filePath'?")
 
         if (shouldDelete) {
@@ -248,9 +248,9 @@ command("chooseColor") {
 
     argument("color", "Color name (Red, Green, Blue, Yellow)")
 
-    action { args ->
+    action {
         val colors = listOf("Red", "Green", "Blue", "Yellow")
-        val inputColor = args["color"] ?: select(colors)
+        val inputColor = get("color") ?: select(colors)
         println("You selected: $inputColor")
     }
 }
@@ -264,9 +264,9 @@ command("chooseFruit") {
 
     argument("fruit", "Fruit name (Apple, Banana, Cherry, Date)")
 
-    action { args ->
+    action {
         val fruits = listOf("Apple", "Banana", "Cherry", "Date")
-        val selectedFruit = args["fruit"] ?: selectMenu("Pick your favorite fruit:", fruits)
+        val selectedFruit = get("fruit") ?: selectMenu("Pick your favorite fruit:", fruits)
         println("You chose: $selectedFruit!")
     }
 }
@@ -359,6 +359,24 @@ println("Important!", AnsiColor.RED)
 | DOTS         | Growing dots animation (...)          |
 | BLOCKS       | Progress bar using blocks (▓░)         |
 | PULSE        | Simple left/right pulse arrows (← →)   |
+
+---
+
+
+## ⚙️ Extension Functions for String Colorization
+
+| Function Name    | Description                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------- |
+| `color(color)`    | Applies the specified `AnsiColor` to the string. Displays the string in the chosen color in supported terminals. |
+| `bold()`          | Makes the string bold.                                                                                   |
+| `faint()`         | Makes the string faint (light).                                                                          |
+| `italic()`        | Makes the string italic.                                                                                 |
+| `underline()`     | Underlines the string.                                                                                    |
+| `slowBlink()`     | Applies a slow blink effect to the string.                                                                |
+| `rapidBlink()`    | Applies a rapid blink effect to the string.                                                               |
+| `reversed()`      | Reverses the color scheme of the string.                                                                  |
+| `conceal()`       | Conceals (hides) the string.                                                                              |
+| `crossedOut()`    | Crosses out (strikes through) the string.                                                                 |
 
 ---
 
