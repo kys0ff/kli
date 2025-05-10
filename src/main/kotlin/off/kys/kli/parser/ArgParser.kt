@@ -2,6 +2,8 @@
 
 package off.kys.kli.parser
 
+import off.kys.kli.core.Command
+
 /**
  * A utility class for parsing command-line arguments.
  *
@@ -133,4 +135,100 @@ class ArgParser(
      * @return A list of all positional parameters.
      */
     fun getParams(): List<String> = params
+
+    /**
+     * Retrieves all positional parameters scoped to this [Command].
+     *
+     * This returns all parameters that come after the command name.
+     *
+     * Example:
+     * ```
+     * val parser = ArgParser.from(arrayOf("build", "module1", "module2"))
+     * val cmd = Command("build")
+     * println(cmd.params()) // ["module1", "module2"]
+     * ```
+     *
+     * @return A list of scoped parameters, or an empty list if none found.
+     */
+    fun Command.params(): List<String> {
+        val index = params.indexOfFirst { it.equals(this.name, ignoreCase = true) }
+        return if (index != -1) params.drop(index + 1) else emptyList()
+    }
+
+    /**
+     * Retrieves the first scoped parameter for this [Command].
+     *
+     * This is useful when you expect only a single parameter.
+     *
+     * Example:
+     * ```
+     * val parser = ArgParser.from(arrayOf("run", "main.kt"))
+     * val cmd = Command("run")
+     * println(cmd.param()) // "main.kt"
+     * ```
+     *
+     * @return The first parameter, or `null` if none found.
+     */
+    fun Command.param(): String? = params().firstOrNull()
+
+    /**
+     * Retrieves the first scoped parameter for this [Command], or applies a default value if none found.
+     *
+     * This is useful when you want to return a default value when the parameter is missing or null.
+     *
+     * Example:
+     * ```
+     * val parser = ArgParser.from(arrayOf("run"))
+     * val cmd = Command("run")
+     * println(cmd.param { "default_value" }) // "default_value"
+     * ```
+     *
+     * @param default A lambda function that returns the default value when the parameter is null.
+     * @return The first parameter, or the result of the default lambda if none found.
+     */
+    fun Command.param(default: () -> String): String = params().firstOrNull() ?: default()
+
+    /**
+     * Retrieves the scoped parameter at the specified [index] for this [Command].
+     *
+     * Example:
+     * ```
+     * val parser = ArgParser.from(arrayOf("copy", "file1.txt", "file2.txt"))
+     * val cmd = Command("copy")
+     * println(cmd.paramAt(1)) // "file2.txt"
+     * ```
+     *
+     * @param index The zero-based index of the parameter.
+     * @return The parameter at the given index, or `null` if out of bounds.
+     */
+    fun Command.paramAt(index: Int): String? = params().getOrNull(index)
+
+    /**
+     * Checks if this [Command] has any scoped parameters.
+     *
+     * Example:
+     * ```
+     * val parser = ArgParser.from(arrayOf("deploy"))
+     * val cmd = Command("deploy")
+     * println(cmd.hasParams()) // false
+     * ```
+     *
+     * @return `true` if there are parameters, `false` otherwise.
+     */
+    fun Command.hasParams(): Boolean = params().isNotEmpty()
+
+    /**
+     * Counts the number of scoped parameters for this [Command].
+     *
+     * Example:
+     * ```
+     * val parser = ArgParser.from(arrayOf("move", "file1.txt", "dir/"))
+     * val cmd = Command("move")
+     * println(cmd.paramCount()) // 2
+     * ```
+     *
+     * @return The number of parameters found.
+     */
+    fun Command.paramCount(): Int = params().size
+
 }

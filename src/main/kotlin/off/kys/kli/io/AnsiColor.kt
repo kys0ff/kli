@@ -82,6 +82,8 @@ sealed class AnsiColor(open val code: String) {
      */
     data class Custom(override val code: String) : AnsiColor(code)
 
+    operator fun invoke(): String = code
+
     companion object {
         /**
          * Creates a custom `AnsiColor` object using the given ANSI code.

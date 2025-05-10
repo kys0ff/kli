@@ -5,4 +5,3 @@ plugins {
 }
 
 rootProject.name = "kli"
-include("fzf")

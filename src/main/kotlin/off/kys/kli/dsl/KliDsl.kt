@@ -4,6 +4,7 @@ package off.kys.kli.dsl
 
 import off.kys.kli.core.Command
 import off.kys.kli.core.KliConfig
+import off.kys.kli.errors.CommandAlreadyExistsException
 import off.kys.kli.io.AnsiColor
 import off.kys.kli.io.readInput
 import off.kys.kli.parser.ArgParser
@@ -13,7 +14,7 @@ import off.kys.kli.utils.extensions.println
 import java.io.Console
 
 /**
- * A Domain-Specific Language (DSL) class for building and managing a off.kys.kli.core.Command Line Interface (CLI) tool.
+ * A Domain-Specific Language (DSL) class for building and managing an off.kys.kli.core.Command Line Interface (CLI) tool.
  *
  * This class allows configuring commands, handling arguments, and switching between interactive and argument-based modes.
  *
@@ -27,6 +28,14 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
     // A reference to the system's console (if available).
     val console: Console?
         get() = System.console()
+
+    /**
+     * A lambda for globally customizing crash handling.
+     * This lambda is invoked whenever an exception is thrown during command registration or execution.
+     *
+     * @param onCrash A function that receives the thrown exception.
+     */
+    var onCrash: ((Throwable) -> Unit)? = null
 
     /**
      * Configures the CLI tool using the provided block of code.
@@ -45,7 +54,13 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
      * @param name The name of the command.
      * @param config The configuration block to modify the `off.kys.kli.core.Command` instance.
      */
-    fun command(name: String, config: Command.() -> Unit) = commands.add(Command(name).apply(config))
+    fun command(name: String, config: Command.() -> Unit) {
+        // Check for duplicate command name.
+        if (commands.any { it.name == name })
+            throw CommandAlreadyExistsException(name)
+
+        commands.add(Command(name).apply(config))
+    }
 
     /**
      * Executes the command-line interface logic based on the provided arguments.
@@ -55,7 +70,13 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
      *
      * @param args The array of arguments passed to the CLI.
      */
-    fun execute(args: Array<String>) = if (args.isEmpty()) startInteractiveMode() else processArguments(args)
+    fun execute(args: Array<String>) {
+        try {
+            if (args.isEmpty()) startInteractiveMode() else processArguments(args)
+        } catch (e: Exception) {
+            handleCrash(e)
+        }
+    }
 
 
     // Processes the arguments passed to the CLI, either executing a command or displaying help.
@@ -95,7 +116,10 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
                 cmd.execute(args) // Execute the command.
             }
         } else {
-            println("off.kys.kli.core.Command not found: '${cmdName ?: ""}'", State.ERROR) // off.kys.kli.core.Command not found error.
+            println(
+                "off.kys.kli.core.Command not found: '${cmdName ?: ""}'",
+                State.ERROR
+            ) // off.kys.kli.core.Command not found error.
             if (config.showUsageOnError) showHelp() // Optionally show usage on error.
         }
     }
@@ -128,13 +152,30 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
         }
     }
 
-    // Processes input provided in interactive mode and passes it as arguments to be processed.
+    /**
+     * Processes input provided in interactive mode by splitting it into arguments and passing it to the command processor.
+     *
+     * @param input The input string from the user.
+     */
     private fun processInteractiveInput(input: String) {
         try {
-            val args = input.split("\\s+".toRegex()).toTypedArray() // Split input into arguments.
-            processArguments(args) // Process the arguments as if they were passed via CLI.
+            val args = input.split("\\s+".toRegex()).toTypedArray()
+            processArguments(args)
         } catch (e: Exception) {
-            println("Error executing command: ${e.message}", State.ERROR) // Error handling for invalid commands.
+            handleCrash(e)
+        }
+    }
+
+    /**
+     * Handles any exception thrown during execution by calling the global `onCrash` lambda if defined.
+     * Otherwise, it prints the error message and stack trace.
+     *
+     * @param e The thrown exception.
+     */
+    private fun handleCrash(e: Throwable) {
+        onCrash?.invoke(e) ?: run {
+            println("Unhandled error: ${e.message}", State.ERROR)
+            e.printStackTrace() // Optional: for debugging
         }
     }
 
@@ -170,7 +211,11 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
         // Available Commands
         println("Commands:".color(AnsiColor.BRIGHT_CYAN))
         commands.forEach { cmd ->
-            println("  ${cmd.name.color(AnsiColor.BRIGHT_MAGENTA).padEnd(15)} ${cmd.description.color(AnsiColor.BRIGHT_BLACK)}")
+            println(
+                "  ${
+                    cmd.name.color(AnsiColor.BRIGHT_MAGENTA).padEnd(15)
+                } ${cmd.description.color(AnsiColor.BRIGHT_BLACK)}"
+            )
         }
         println()
 
