@@ -81,7 +81,7 @@ fun KliScope.greetCommand() = command("greet") {
     flag("shout", "Shout the greeting")
 
     action {
-        val name = param(1) ?: readInputOrNull("Enter your name", AnsiColor.CYAN) ?: "stranger"
+        val name = param() ?: readInputOrNull("Enter your name", AnsiColor.CYAN) ?: "stranger"
         
         val greeting = "Hello, $name"
         if (getFlag("shout"))
