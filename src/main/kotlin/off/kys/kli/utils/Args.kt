@@ -24,6 +24,6 @@ typealias ArgsScope = ArgParser
  */
 @Deprecated(
     message = "Use ArgsScope instead for better clarity and consistency.",
-    replaceWith = ReplaceWith("ArgsScope")
+    replaceWith = ReplaceWith("ArgsScope"),
 )
 typealias Args = ArgParser

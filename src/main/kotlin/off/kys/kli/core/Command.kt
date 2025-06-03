@@ -1,5 +1,8 @@
+@file:Suppress("unused")
+
 package off.kys.kli.core
 
+import off.kys.kli.core.config.KliConfig
 import off.kys.kli.io.AnsiColor
 import off.kys.kli.parser.ArgParser
 import off.kys.kli.utils.Args
@@ -9,137 +12,137 @@ import off.kys.kli.utils.extensions.color
 import off.kys.kli.utils.extensions.println
 
 /**
- * Represents a CLI command in the KLI framework.
+ * Represents a single CLI command within the KLI framework.
  *
- * Each command has:
- * - a name (e.g., "init", "build")
- * - optional description
- * - configurable arguments and flags
- * - an executable action block
+ * A command encapsulates a named operation, such as `init` or `build`, with
+ * configurable parameters like positional arguments and flags. It supports
+ * execution blocks with access to parsed arguments.
+ *
+ * @property name The unique name of this command (used for invocation).
+ * @property config CLI configuration options (e.g., color schemes).
  */
-class Command(val name: String) {
-    /** Description of the command shown in help text */
+class Command(
+    val name: String,
+    val config: KliConfig
+) {
+    /** Optional help text describing what the command does. */
     var description: String = ""
 
-    /** List of registered positional arguments for the command */
+    private val colors = config.colors
     private val arguments = mutableListOf<Argument>()
-
-    /** List of registered flags (options starting with --) */
     private val flags = mutableListOf<Flag>()
-
-    /** The main logic to execute when this command is run */
     private var action: (ArgParser) -> Unit = {}
 
     /**
-     * Adds a positional argument to this command.
+     * Registers a positional argument required by this command.
      *
-     * @param name The name of the argument (e.g., "filename")
-     * @param description Optional description for help display
+     * @param name Name of the argument.
+     * @param description Optional description shown in help output.
      */
-    fun argument(name: String, description: String = "") = arguments.add(Argument(name, description))
+    fun argument(name: String, description: String = "") {
+        arguments.add(Argument(name, description))
+    }
 
     /**
-     * Adds a flag (option) to this command.
+     * Registers a flag (e.g., `--verbose`) for this command.
      *
-     * @param name The name of the flag (without "--")
-     * @param description Optional description for help display
+     * @param name Name of the flag without dashes.
+     * @param description Optional description shown in help output.
      */
-    fun flag(name: String, description: String = "") = flags.add(Flag(name, description))
+    fun flag(name: String, description: String = "") {
+        flags.add(Flag(name, description))
+    }
 
     /**
-     * Checks if the provided name matches a registered argument or flag.
+     * Checks whether a given name matches a known argument or flag.
      *
-     * @param name The name to check (without -- for flags)
-     * @return True if it's a registered argument or flag, false otherwise
+     * @param name The name to check (can be null).
+     * @return `true` if the name is a registered argument or flag.
      */
-    fun isRegisteredParamOrArg(name: String?): Boolean =
-        arguments.any { it.name == name } || flags.any { it.name == name }
+    fun isRegisteredParamOrArg(name: String?): Boolean {
+        return arguments.any { it.name == name } || flags.any { it.name == name }
+    }
 
     /**
-     * Sets the action block to execute when this command runs.
+     * **Deprecated:** Legacy action binding.
      *
-     * @param block The logic, receiving parsed args.
-     *
-     * @deprecated This method is deprecated in favor of the new `action` method that uses `ArgsScope`.
-     * Use the new method for better scope handling and flexibility.
-     * This method will be removed in a future version.
-     *
-     * Expect that your app will be buggy and may crash at any point when using this deprecated method.
+     * @param block Code block accepting a legacy-style [Args] instance.
+     * @deprecated Use the [action] method with [ArgsScope] instead.
      */
     @Deprecated(
-        message = "Use the new action method with ArgsScope for improved flexibility. This method will be removed soon. Expect that your app will be buggy and may crash at any point when using this deprecated method.",
-        replaceWith = ReplaceWith(expression = "action(block: ArgsScope.() -> Unit)"),
-        level = DeprecationLevel.WARNING
+        message = "Use the new action method with ArgsScope for improved flexibility.",
+        replaceWith = ReplaceWith("action(block: ArgsScope.() -> Unit)"),
+        level = DeprecationLevel.HIDDEN
     )
-    fun action(deprecated:Any? = null, block: (Args) -> Unit) {
+    fun action(deprecated: Any? = null, block: (Args) -> Unit) {
         action = block
     }
 
     /**
-     * Sets the action block to execute when this command runs.
+     * Sets the command's logic to be executed when invoked.
      *
-     * @param block The logic, receiving parsed args within the ArgsScope.
+     * @param block Code block with DSL-like access to parsed arguments.
      */
     fun action(block: ArgsScope.() -> Unit) {
         action = block
     }
 
     /**
-     * Executes the command with provided parsed arguments.
+     * Executes the command with parsed CLI arguments.
      *
-     * @param args The parsed arguments and flags
+     * @param args The parsed arguments for this run.
      */
-    fun execute(args: ArgParser) = action(args)
+    fun execute(args: ArgParser) {
+        action(args)
+    }
 
     /**
-     * Prints formatted help text for this command, showing usage,
-     * arguments, flags, and built-in flags like --help and --version.
+     * Displays help output describing this command's usage,
+     * arguments, flags, and built-in options.
      */
     fun showHelp() {
-        // Usage line
-        println("Usage: ${name.color(AnsiColor.BRIGHT_CYAN)} [options]", State.INFO)
+        // Usage
+        println("Usage: ${name.color(colors.primaryColor)} [options]", State.INFO)
         println()
 
-        // Description block
+        // Description
         if (description.isNotEmpty()) {
-            println(description, AnsiColor.BRIGHT_WHITE)
+            println(description, colors.infoColor)
         }
 
-        // Arguments block
+        // Arguments
         if (arguments.isNotEmpty()) {
-            println("\nArguments:", AnsiColor.BRIGHT_YELLOW)
+            println("\nArguments:", colors.warningColor)
             arguments.forEach {
-                val argName = it.name.color(AnsiColor.BRIGHT_CYAN)
-                val desc = it.description.color(AnsiColor.BRIGHT_BLACK)
+                val argName = it.name.color(colors.primaryColor)
+                val desc = it.description.color(colors.infoColor)
                 println("  $argName  $desc")
             }
         }
 
-        // Flags block
+        // Flags
         if (flags.isNotEmpty()) {
-            println("\nFlags:", AnsiColor.BRIGHT_YELLOW)
+            println("\nFlags:", colors.warningColor)
             flags.forEach {
-                val flagName = "--${it.name}".color(AnsiColor.BRIGHT_GREEN)
-                val desc = it.description.color(AnsiColor.BRIGHT_BLACK)
+                val flagName = "--${it.name}".color(colors.secondaryColor)
+                val desc = it.description.color(colors.infoColor)
                 println("  $flagName  $desc")
             }
         }
 
-        // Built-in flags (always present)
-        println("\nBuiltin Flags:".color(AnsiColor.BRIGHT_YELLOW))
+        // Built-in Flags
+        println("\nBuiltin Flags:".color(colors.warningColor))
 
-        val helpFlag = "--help".color(AnsiColor.BRIGHT_GREEN)
+        val helpFlag = "--help".color(colors.secondaryColor)
         val helpDesc = "Show this help message and exit.".color(AnsiColor.BRIGHT_BLACK)
         println("  $helpFlag  $helpDesc")
 
-        val versionFlag = "--version".color(AnsiColor.BRIGHT_GREEN)
-        val versionDesc = "Show version information and exit.".color(AnsiColor.BRIGHT_BLACK)
+        val versionFlag = "--version".color(colors.secondaryColor)
+        val versionDesc = "Show version information and exit.".color(config.colors.infoColor)
         println("  $versionFlag  $versionDesc")
     }
 
-    /** Represents a positional argument */
+    // Internal data holders for arguments and flags
     private data class Argument(val name: String, val description: String)
-
-    /** Represents a flag/option (e.g., --verbose) */
     private data class Flag(val name: String, val description: String)
 }

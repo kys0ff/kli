@@ -3,7 +3,7 @@
 package off.kys.kli.dsl
 
 import off.kys.kli.core.Command
-import off.kys.kli.core.KliConfig
+import off.kys.kli.core.config.KliConfig
 import off.kys.kli.errors.CommandAlreadyExistsException
 import off.kys.kli.io.AnsiColor
 import off.kys.kli.io.readInput
@@ -59,7 +59,7 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
         if (commands.any { it.name == name })
             throw CommandAlreadyExistsException(name)
 
-        commands.add(Command(name).apply(config))
+        commands.add(Command(name, this.config).apply(config))
     }
 
     /**
@@ -126,15 +126,15 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
 
     // Starts the interactive mode of the CLI tool.
     private fun startInteractiveMode() {
-        if (config.showInteractiveModeMessage) {
-            println("Welcome to ${config.name} interactive mode!", config.greetingColor)
+        if (config.interactiveMode.greet.show) {
+            println(config.interactiveMode.greet.message, config.interactiveMode.greet.color)
         }
-        println("Type 'help' for available commands, 'exit' to quit", AnsiColor.BRIGHT_CYAN)
+        println("Type 'help' for available commands, 'exit' to quit", config.colors.primaryColor)
 
         // Main loop for reading user input in interactive mode.
         while (true) {
             val input = if (config.showPrompt) {
-                readInput(config.name, config.promptColor).trim() // Prompt the user if enabled.
+                readInput(config.name, config.colors.primaryColor).trim() // Prompt the user if enabled.
             } else {
                 readInput("").trim() // Read input without a prompt if disabled.
             }
@@ -147,9 +147,8 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
             }
         }
 
-        if (config.showGoodbyeMessage) {
-            println("Goodbye!", config.goodbyeColor) // Show goodbye message when exiting interactive mode.
-        }
+        if (config.interactiveMode.goodBye.show)
+            println(config.interactiveMode.goodBye.message, config.interactiveMode.goodBye.color) // Show goodbye message when exiting interactive mode.
     }
 
     /**
@@ -183,7 +182,7 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
     private fun showInteractiveHelp() {
         println("Available commands:", AnsiColor.BRIGHT_CYAN)
         commands.forEach { cmd ->
-            println("  ${cmd.name.padEnd(15)} ${cmd.description.color(AnsiColor.BRIGHT_BLACK)}") // List commands with descriptions.
+            println("  ${cmd.name.padEnd(15)} ${cmd.description.color(config.colors.infoColor)}") // List commands with descriptions.
         }
         println()
         println("You can also:")
@@ -193,23 +192,24 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
 
     // Displays the version of the CLI tool.
     private fun showVersion() {
-        println("${config.name} version ${config.version}", config.greetingColor)
+        println("${config.name} version ${config.version}", config.colors.secondaryColor)
     }
 
     // Displays the general help message for the CLI tool.
     // Displays the general help message for the CLI tool.
     private fun showHelp() {
         // Header
-        println("${config.name.color(AnsiColor.BRIGHT_YELLOW)} - ${config.description.color(AnsiColor.BRIGHT_WHITE)}")
+        println()
+        println("${config.name.color(config.colors.primaryColor)} - ${config.description.color(config.colors.infoColor)}")
         println()
 
         // Usage
-        println("Usage:".color(AnsiColor.BRIGHT_GREEN))
-        println("  <command> [arguments] [options]".color(AnsiColor.BRIGHT_WHITE))
+        println("Usage:".color(config.colors.warningColor))
+        println("  <command> [arguments] [options]".color(config.colors.debugColor))
         println()
 
         // Available Commands
-        println("Commands:".color(AnsiColor.BRIGHT_CYAN))
+        println("Commands:".color(config.colors.warningColor))
         commands.forEach { cmd ->
             println(
                 "  ${
@@ -220,13 +220,13 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
         println()
 
         // Flags
-        println("Global Options:".color(AnsiColor.BRIGHT_CYAN))
+        println("Global Options:".color(config.colors.warningColor))
         println("  --help, -h        ".color(AnsiColor.BRIGHT_MAGENTA) + "Show this help message")
         println("  --version         ".color(AnsiColor.BRIGHT_MAGENTA) + "Show version info")
         println()
 
         // Tips
-        println("Tips:".color(AnsiColor.BRIGHT_GREEN))
+        println("Tips:".color(config.colors.infoColor))
         println("  Type '${"help".color(AnsiColor.BRIGHT_YELLOW)}' in interactive mode to list commands.")
         println("  Use '${"--help".color(AnsiColor.BRIGHT_YELLOW)}' after any command to get command-specific help.")
         println()
