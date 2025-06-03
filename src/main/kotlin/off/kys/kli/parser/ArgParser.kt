@@ -1,4 +1,4 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "KDocUnresolvedReference")
+@file:Suppress("MemberVisibilityCanBePrivate", "KDocUnresolvedReference", "unused")
 
 package off.kys.kli.parser
 
@@ -46,25 +46,48 @@ class ArgParser(
 
             var i = 0
             while (i < args.size) {
+                val arg = args[i]
+
                 when {
-                    args[i].startsWith("--") -> { // Long-form arguments (e.g., --key value)
-                        val key = args[i].substring(2)
-                        if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
-                            arguments[key] = args[i + 1] // Capture key-value argument
-                            i++
-                        } else flags.add(key) // Capture flag
+                    arg.startsWith("--") -> {
+                        val eqIndex = arg.indexOf('=')
+                        if (eqIndex != -1) {
+                            // --key=value format
+                            val key = arg.substring(2, eqIndex)
+                            val value = arg.substring(eqIndex + 1)
+                            arguments[key] = value
+                        } else {
+                            val key = arg.substring(2)
+                            if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
+                                arguments[key] = args[i + 1]
+                                i++
+                            } else {
+                                flags.add(key)
+                            }
+                        }
                     }
 
-                    args[i].startsWith("-") -> { // Short-form arguments (e.g., -k value)
-                        val key = args[i].substring(1)
-                        if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
-                            arguments[key] = args[i + 1] // Capture key-value argument
-                            i++
-                        } else flags.add(key) // Capture flag
+                    arg.startsWith("-") -> {
+                        val eqIndex = arg.indexOf('=')
+                        if (eqIndex != -1) {
+                            // -k=value format
+                            val key = arg.substring(1, eqIndex)
+                            val value = arg.substring(eqIndex + 1)
+                            arguments[key] = value
+                        } else {
+                            val key = arg.substring(1)
+                            if (i + 1 < args.size && !args[i + 1].startsWith("-")) {
+                                arguments[key] = args[i + 1]
+                                i++
+                            } else {
+                                flags.add(key)
+                            }
+                        }
                     }
 
-                    else -> params.add(args[i]) // Capture positional parameter
+                    else -> params.add(arg)
                 }
+
                 i++
             }
 
