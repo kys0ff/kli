@@ -3,10 +3,12 @@
 package off.kys.kli.io
 
 import off.kys.kli.errors.UnsupportedConsoleException
+import off.kys.kli.io.model.TerminalSize
 import off.kys.kli.utils.KliScope
 import off.kys.kli.utils.extensions.State
 import off.kys.kli.utils.extensions.color
 import off.kys.kli.utils.extensions.println
+import java.io.IOException
 
 // Internal helper: detect if running in IDE environment (IntelliJ/Eclipse)
 private fun isRunningInIDE(): Boolean {
@@ -143,4 +145,99 @@ fun <T> KliScope.selectMenu(
 
         println("Invalid selection", State.ERROR)
     }
+}
+
+/**
+ * Attempts to retrieve the current terminal size.
+ * Falls back to a default size of 80x24 if retrieval fails.
+ */
+fun KliScope.getTerminalSize(): TerminalSize = try {
+    if (isWindows()) {
+        getTerminalSizeWindows()
+    } else {
+        getTerminalSizeUnix()
+    }
+} catch (_: Exception) {
+    TerminalSize(80, 24) // Fallback terminal size
+}
+
+/**
+ * Gets the terminal size on Unix-like systems by executing `stty size`.
+ * Parses the output in the form of "rows cols".
+ */
+private fun getTerminalSizeUnix(): TerminalSize {
+    val process = ProcessBuilder("sh", "-c", "stty size < /dev/tty")
+        .redirectErrorStream(true)
+        .start()
+    val output = process.inputStream.bufferedReader().readText().trim()
+    val (rows, cols) = output.split(" ").map { it.toInt() }
+    return TerminalSize(cols, rows) // Columns come second in stty output
+}
+
+/**
+ * Gets the terminal size on Windows by executing `mode con`.
+ * Parses the output for "Columns" and "Lines".
+ */
+private fun getTerminalSizeWindows(): TerminalSize {
+    val process = ProcessBuilder("cmd", "/c", "mode con")
+        .redirectErrorStream(true)
+        .start()
+    val output = process.inputStream.bufferedReader().readLines()
+    val cols = output.find { it.contains("Columns") }
+        ?.split(":")?.get(1)?.trim()?.toIntOrNull() ?: 80
+    val rows = output.find { it.contains("Lines") }
+        ?.split(":")?.get(1)?.trim()?.toIntOrNull() ?: 24
+    return TerminalSize(cols, rows)
+}
+
+/**
+ * Clears the terminal screen.
+ * Uses the appropriate command for the host OS.
+ */
+fun KliScope.clearScreen() = if (isWindows()) {
+    ProcessBuilder("cmd", "/c", "cls")
+        .inheritIO()
+        .start()
+        .waitFor()
+} else {
+    print("\u001b[H\u001b[2J") // ANSI escape sequence to clear and reset
+    printStream?.flush()
+}
+
+/**
+ * Moves the terminal cursor to the specified (x, y) position.
+ * Top-left is (1, 1). ANSI escape sequence based.
+ */
+fun KliScope.moveCursor(x: Int, y: Int) {
+    print("\u001B[${y};${x}H")
+    printStream?.flush()
+}
+
+/**
+ * Checks whether the terminal supports ANSI escape codes.
+ * Usually true on Unix, but also on some modern Windows terminals.
+ */
+fun KliScope.supportsAnsi(): Boolean =
+    !isWindows() || System.getenv("TERM")?.contains("xterm") == true
+
+/**
+ * Reads a single key from the terminal without waiting for Enter.
+ * On Unix, uses raw terminal mode. On Windows, falls back to standard read.
+ * Returns '?' on failure.
+ */
+fun KliScope.readSingleKey(): Char = try {
+    if (!isWindows()) {
+        ProcessBuilder(
+            "sh", "-c",
+            "stty raw -echo </dev/tty && dd bs=1 count=1 2>/dev/null </dev/tty && stty sane </dev/tty"
+        )
+            .redirectErrorStream(true)
+            .start()
+            .inputStream.read().toChar()
+    } else {
+        // Basic fallback for Windows, no raw mode
+        inputStream?.read()?.toChar() ?: 'n'
+    }
+} catch (_: IOException) {
+    '?' // Unknown/error key
 }

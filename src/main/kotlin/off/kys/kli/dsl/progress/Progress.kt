@@ -11,7 +11,8 @@ import off.kys.kli.ui.progress.ProgressBar
  * The `ProgressMarker` annotation is used to mark the function for progress tracking.
  *
  * @param config A configuration block that applies modifications to the [ProgressBar] instance.
- * @return A [ProgressBar] instance with the specified configuration.
  */
 @ProgressMarker
-fun progressBar(config: ProgressBar.() -> Unit): ProgressBar = ProgressBar().apply(config)
+fun progressBar(config: ProgressBar.() -> Unit) {
+    ProgressBar().apply(config)
+}

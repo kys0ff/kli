@@ -12,6 +12,8 @@ import off.kys.kli.utils.extensions.State
 import off.kys.kli.utils.extensions.color
 import off.kys.kli.utils.extensions.println
 import java.io.Console
+import java.io.InputStream
+import java.io.PrintStream
 
 /**
  * A Domain-Specific Language (DSL) class for building and managing an off.kys.kli.core.Command Line Interface (CLI) tool.
@@ -28,6 +30,12 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
     // A reference to the system's console (if available).
     val console: Console?
         get() = System.console()
+
+    val inputStream: InputStream?
+        get() = System.`in`
+
+    val printStream: PrintStream?
+        get() = System.out
 
     /**
      * A lambda for globally customizing crash handling.
@@ -72,12 +80,13 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
      */
     fun execute(args: Array<String>) {
         try {
-            if (args.isEmpty()) startInteractiveMode() else processArguments(args)
+            if (args.isEmpty() && config.interactiveMode.enabled) startInteractiveMode() else processArguments(args)
         } catch (e: Exception) {
             handleCrash(e)
         }
     }
 
+    fun isWindows(): Boolean = System.getProperty("os.name").lowercase().contains("win")
 
     // Processes the arguments passed to the CLI, either executing a command or displaying help.
     private fun processArguments(args: Array<String>) {
@@ -126,9 +135,8 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
 
     // Starts the interactive mode of the CLI tool.
     private fun startInteractiveMode() {
-        if (config.interactiveMode.greet.show) {
-            println(config.interactiveMode.greet.message, config.interactiveMode.greet.color)
-        }
+        if (config.interactiveMode.greet?.show == true)
+            println(config.interactiveMode.greet!!.message, config.interactiveMode.greet!!.color)
         println("Type 'help' for available commands, 'exit' to quit", config.colors.primaryColor)
 
         // Main loop for reading user input in interactive mode.
@@ -147,8 +155,8 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
             }
         }
 
-        if (config.interactiveMode.goodBye.show)
-            println(config.interactiveMode.goodBye.message, config.interactiveMode.goodBye.color) // Show goodbye message when exiting interactive mode.
+        if (config.interactiveMode.goodBye?.show == true)
+            println(config.interactiveMode.goodBye!!.message, config.interactiveMode.goodBye!!.color) // Show goodbye message when exiting interactive mode.
     }
 
     /**

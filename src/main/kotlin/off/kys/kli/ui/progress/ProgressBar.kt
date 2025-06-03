@@ -2,106 +2,125 @@
 
 package off.kys.kli.ui.progress
 
-import kotlinx.coroutines.*
 import off.kys.kli.ui.progress.util.ProgressType
 import off.kys.kli.ui.progress.util.SpinnerStyle
 
 /**
- * A class representing a progress bar or other types of progress indicators (e.g., spinner, dots, blocks, pulse).
+ * A terminal-based progress bar/spinner/dots/etc. visualizer.
  *
- * The `ProgressBar` class provides functionality to display different types of progress indicators in the terminal.
- * It can show a simple progress bar, spinner, animated dots, blocks, or pulse effect.
- * This is particularly useful for CLI applications where visual feedback of an ongoing process is needed.
- *
- * @property width The width of the progress bar (only applies when the progress type is `BAR`, `BLOCKS`, or `DOTS`).
- * @property symbol The symbol used to represent the filled part of the progress bar (default is '=').
- * @property emptySymbol The symbol used to represent the unfilled part of the progress bar (default is a space).
- * @property prefix A string to display before the progress bar or spinner (default is an empty string).
- * @property suffix A string to display after the progress value (default is "%").
- * @property type The type of progress indicator to use (e.g., `BAR`, `SPINNER`, `DOTS`, `BLOCKS`, `PULSE`).
- * @property spinnerStyle The style of the spinner (applies only if `type` is `SPINNER`).
+ * Supports multiple visual styles like:
+ * - Traditional bar
+ * - Dots
+ * - Block-style bar
+ * - Pulse animation
+ * - Spinner animation (in a separate thread)
  */
 class ProgressBar(
-    var width: Int = 30,
-    var symbol: Char = '=',
-    var emptySymbol: Char = ' ',
-    var prefix: String = "",
-    var suffix: String = "%",
-    var type: ProgressType = ProgressType.BAR,
-    var spinnerStyle: SpinnerStyle = SpinnerStyle.DEFAULT,
+    var width: Int = 30,                        // Width of the progress bar (number of symbols)
+    var symbol: Char = '=',                     // Character to represent filled progress
+    var emptySymbol: Char = ' ',                // Character to represent unfilled progress
+    var prefix: String = "",                    // Optional prefix text before the bar
+    var suffix: String = "%",                   // Optional suffix text after the percentage
+    var type: ProgressType = ProgressType.BAR,  // The type of progress visual to use
+    var spinnerStyle: SpinnerStyle = SpinnerStyle.DEFAULT, // Spinner style (frames and interval)
 ) {
-    private var current: Int = 0
-    private var total: Int = 100
-    private var spinnerIndex: Int = 0
-    private var spinnerJob: Job? = null
+    private var current: Int = 0          // Current progress value
+    private var total: Int = 100          // Total value to reach 100%
+    private var spinnerIndex: Int = 0     // Index of the current spinner frame
+    private var spinnerThread: Thread? = null // Background thread for spinner animation
+    @Volatile
+    private var spinning = false    // Flag to control spinner thread execution
 
     /**
-     * Starts the progress indicator with the specified total value and an optional block of code for updates.
+     * Starts the progress and executes the block. Optionally clears output after completion.
      *
-     * @param total The total value of the progress (default is 100).
-     * @param block The block of code that updates the progress (can call `update` or `increment` inside it).
+     * @param total The total value to reach 100%.
+     * @param clearOnFinish Whether to remove the progress display after finish.
+     * @param block The operation to execute while showing progress.
      */
-    fun start(total: Int = 100, block: ProgressBar.() -> Unit) {
+    fun start(total: Int = 100, clearOnFinish: Boolean = false, block: ProgressBar.() -> Unit) {
         this.total = total
         this.current = 0
 
-        // Start spinner animation if the selected type is spinner
-        if (type == ProgressType.SPINNER)
-            startSpinner()
+        if (type == ProgressType.SPINNER) startSpinner()
 
         block()
 
-        // Stop spinner animation after progress block is complete
-        if (type == ProgressType.SPINNER)
-            stopSpinner()
+        if (type == ProgressType.SPINNER) stopSpinner()
 
-        println() // Move to the next line after the progress display
+        if (clearOnFinish) clearLine() else println()
     }
 
     /**
-     * Updates the progress to the specified value.
-     *
-     * @param value The new value of the progress (should be between 0 and `total`).
+     * Updates the progress to a specific value.
+     * Triggers a redraw if it's not a spinner type.
      */
     fun update(value: Int) {
-        current = value.coerceIn(0, total) // Ensures the value stays between 0 and total
+        current = value.coerceIn(0, total)
         if (type != ProgressType.SPINNER)
             draw()
     }
 
     /**
-     * Increments the current progress by the specified step.
-     *
-     * @param step The step to increment the progress by (default is 1).
+     * Increments the current progress by a given step (default is 1).
      */
     fun increment(step: Int = 1) = update(current + step)
 
-    // Private function to draw the correct type of progress indicator
+    /**
+     * Clears the current terminal line.
+     */
+    private fun clearLine() {
+        print("\r")                   // Return carriage
+        print(" ".repeat(100))       // Overwrite with spaces
+        print("\r")                   // Return to line start again
+    }
+
+    /**
+     * Selects the appropriate drawing method based on the progress type.
+     */
     private fun draw() = when (type) {
         ProgressType.BAR -> drawBar()
-        ProgressType.SPINNER -> Unit // Spinner draws separately in the `startSpinner` coroutine
+        ProgressType.SPINNER -> Unit // Spinner is handled by a background thread
         ProgressType.DOTS -> drawDots()
         ProgressType.BLOCKS -> drawBlocks()
         ProgressType.PULSE -> drawPulse()
     }
 
-    // Private function to start the spinner animation in a separate coroutine
+    /**
+     * Starts the spinner in a separate thread, looping through the animation frames.
+     */
     private fun startSpinner() {
-        spinnerJob = CoroutineScope(Dispatchers.IO).launch {
-            val frames = spinnerStyle.frames
-            while (isActive) {
+        spinning = true
+        val frames = spinnerStyle.frames
+        spinnerThread = Thread {
+            while (spinning) {
                 val frame = frames[spinnerIndex % frames.size]
-                print("\r$prefix $frame") // Update spinner frame
+                print("\r$prefix $frame") // Print current frame
                 spinnerIndex++
-                delay(spinnerStyle.intervalMs.toLong()) // Delay based on intervalMs
+                try {
+                    Thread.sleep(spinnerStyle.intervalMs.toLong())
+                } catch (_: InterruptedException) {
+                    break
+                }
             }
+        }.apply {
+            isDaemon = true
+            start()
         }
     }
 
-    // Private function to stop the spinner animation
-    private fun stopSpinner() = spinnerJob?.cancel()
+    /**
+     * Stops the spinner thread by interrupting it.
+     */
+    private fun stopSpinner() {
+        spinning = false
+        spinnerThread?.interrupt()
+        spinnerThread = null
+    }
 
-    // Private function to draw a standard progress bar
+    /**
+     * Draws a traditional progress bar with filled and empty sections.
+     */
     private fun drawBar() {
         val percent = current * 100 / total
         val filled = width * current / total
@@ -116,16 +135,20 @@ class ProgressBar(
             append(percent)
             append(suffix)
         }
-        print("\r$bar") // Print the progress bar
+        print("\r$bar") // Overwrite the same line
     }
 
-    // Private function to draw a progress indicator using dots
+    /**
+     * Draws a minimalistic progress style using dots.
+     */
     private fun drawDots() {
-        val dots = ".".repeat((current / 5) % width) // Draw a number of dots based on progress
+        val dots = ".".repeat((current / 5) % width)
         print("\r$prefix$dots")
     }
 
-    // Private function to draw a progress indicator using blocks
+    /**
+     * Draws a bar-style progress using block characters for a stronger visual.
+     */
     private fun drawBlocks() {
         val percent = current * 100 / total
         val filled = width * current / total
@@ -140,12 +163,14 @@ class ProgressBar(
             append(percent)
             append(suffix)
         }
-        print("\r$bar") // Print the block progress indicator
+        print("\r$bar")
     }
 
-    // Private function to draw a progress indicator with a pulse effect
+    /**
+     * Draws a pulse animation that switches between left and right arrows.
+     */
     private fun drawPulse() {
-        val pulse = if ((current / 5) % 2 == 0) "←" else "→" // Alternating pulse directions
+        val pulse = if ((current / 5) % 2 == 0) "←" else "→"
         print("\r$prefix $pulse")
     }
 }
