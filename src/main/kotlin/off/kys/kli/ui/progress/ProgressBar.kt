@@ -53,7 +53,7 @@ class ProgressBar(
 
     /**
      * Updates the progress to a specific value.
-     * Triggers a redraw if it's not a spinner type.
+     * Triggers a redrawing if it's not a spinner type.
      */
     fun update(value: Int) {
         current = value.coerceIn(0, total)
@@ -147,7 +147,7 @@ class ProgressBar(
     }
 
     /**
-     * Draws a bar-style progress using block characters for a stronger visual.
+     * Draws bar-style progress using block characters for a stronger visual.
      */
     private fun drawBlocks() {
         val percent = current * 100 / total

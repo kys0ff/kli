@@ -46,7 +46,7 @@ fun KliScope.readInput(prompt: String, color: AnsiColor = AnsiColor.DEFAULT): St
 
 /**
  * Reads a line of input from the user.
- * Returns null if input is unavailable or error happens.
+ * Returns null if input is unavailable or an error happens.
  */
 fun KliScope.readInputOrNull(prompt: String, color: AnsiColor = AnsiColor.DEFAULT): String? {
     print(prompt.color(color))
@@ -63,7 +63,7 @@ fun KliScope.readInputOrNull(prompt: String, color: AnsiColor = AnsiColor.DEFAUL
 
 /**
  * Reads a line of input from the user.
- * Returns empty string if input is unavailable or error happens.
+ * Returns an empty string if input is unavailable or an error happens.
  */
 fun KliScope.readInputOrEmpty(prompt: String, color: AnsiColor = AnsiColor.DEFAULT): String {
     print(prompt.color(color))
@@ -80,7 +80,7 @@ fun KliScope.readInputOrEmpty(prompt: String, color: AnsiColor = AnsiColor.DEFAU
 
 /**
  * Reads a password input from the user, hiding characters.
- * @throws UnsupportedConsoleException if console is not available (no safe fallback for password)
+ * @throws UnsupportedConsoleException if the console is not available (no safe fallback for password)
  */
 fun KliScope.readPassword(prompt: String): String {
     print(prompt.color(AnsiColor.BRIGHT_MAGENTA))
@@ -94,7 +94,7 @@ fun KliScope.readPassword(prompt: String): String {
 }
 
 /**
- * Asks user to confirm an action (yes/no).
+ * Asks the user to confirm an action (yes/no).
  * Accepts "y" or "yes" as positive responses.
  */
 fun KliScope.confirm(prompt: String): Boolean {
@@ -222,7 +222,7 @@ fun KliScope.supportsAnsi(): Boolean =
 
 /**
  * Reads a single key from the terminal without waiting for Enter.
- * On Unix, uses raw terminal mode. On Windows, falls back to standard read.
+ * On Unix, uses raw terminal mode. On Windows, it falls back to standard read.
  * Returns '?' on failure.
  */
 fun KliScope.readSingleKey(): Char = try {

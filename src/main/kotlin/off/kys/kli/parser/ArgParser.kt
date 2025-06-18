@@ -128,6 +128,10 @@ class ArgParser(
      */
     fun getArgument(arg: String): String? = arguments[arg]
 
+    fun isEmpty(): Boolean = params.size == 0
+
+    fun isNotEmpty(): Boolean = isEmpty().not()
+
     /**
      * Retrieves the value of a specified argument using the bracket notation.
      *

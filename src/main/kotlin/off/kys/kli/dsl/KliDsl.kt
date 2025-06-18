@@ -106,9 +106,13 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
         when {
             cliArgs.getFlag("version") -> showVersion() // Show version if the flag is present.
             cmd != null -> handleCommandExecution(cliArgs) // Execute command if it exists.
+            cliArgs.isEmpty() -> showHelp()
             else -> {
                 println("Invalid usage", State.ERROR) // Show error message for invalid arguments.
-                if (config.showUsageOnError) showHelp() // Optionally show usage on error.
+                if (config.showUsageOnError) { // Optionally show usage on error.
+                    println()
+                    showHelp()
+                }
             }
         }
     }
@@ -156,7 +160,10 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
         }
 
         if (config.interactiveMode.goodBye?.show == true)
-            println(config.interactiveMode.goodBye!!.message, config.interactiveMode.goodBye!!.color) // Show goodbye message when exiting interactive mode.
+            println(
+                config.interactiveMode.goodBye!!.message,
+                config.interactiveMode.goodBye!!.color
+            ) // Show goodbye message when exiting interactive mode.
     }
 
     /**
@@ -207,7 +214,6 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
     // Displays the general help message for the CLI tool.
     private fun showHelp() {
         // Header
-        println()
         println("${config.name.color(config.colors.primaryColor)} - ${config.description.color(config.colors.infoColor)}")
         println()
 

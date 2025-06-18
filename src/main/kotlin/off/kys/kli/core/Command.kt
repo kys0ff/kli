@@ -5,7 +5,6 @@ package off.kys.kli.core
 import off.kys.kli.core.config.KliConfig
 import off.kys.kli.io.AnsiColor
 import off.kys.kli.parser.ArgParser
-import off.kys.kli.utils.Args
 import off.kys.kli.utils.ArgsScope
 import off.kys.kli.utils.extensions.State
 import off.kys.kli.utils.extensions.color
@@ -64,21 +63,6 @@ class Command(
     }
 
     /**
-     * **Deprecated:** Legacy action binding.
-     *
-     * @param block Code block accepting a legacy-style [Args] instance.
-     * @deprecated Use the [action] method with [ArgsScope] instead.
-     */
-    @Deprecated(
-        message = "Use the new action method with ArgsScope for improved flexibility.",
-        replaceWith = ReplaceWith("action(block: ArgsScope.() -> Unit)"),
-        level = DeprecationLevel.HIDDEN
-    )
-    fun action(deprecated: Any? = null, block: (Args) -> Unit) {
-        action = block
-    }
-
-    /**
      * Sets the command's logic to be executed when invoked.
      *
      * @param block Code block with DSL-like access to parsed arguments.
@@ -133,13 +117,9 @@ class Command(
         // Built-in Flags
         println("\nBuiltin Flags:".color(colors.warningColor))
 
-        val helpFlag = "--help".color(colors.secondaryColor)
+        val helpFlag = "--help, -h".color(colors.secondaryColor)
         val helpDesc = "Show this help message and exit.".color(AnsiColor.BRIGHT_BLACK)
         println("  $helpFlag  $helpDesc")
-
-        val versionFlag = "--version".color(colors.secondaryColor)
-        val versionDesc = "Show version information and exit.".color(config.colors.infoColor)
-        println("  $versionFlag  $versionDesc")
     }
 
     // Internal data holders for arguments and flags
