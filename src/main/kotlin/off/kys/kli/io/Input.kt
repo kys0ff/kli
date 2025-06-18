@@ -148,17 +148,22 @@ fun <T> KliScope.selectMenu(
 }
 
 /**
- * Attempts to retrieve the current terminal size.
- * Falls back to a default size of 80x24 if retrieval fails.
+ * Retrieves the size of the terminal by determining the number of rows and columns.
+ * It makes use of platform-specific commands to extract terminal dimensions:
+ * - On Windows, it uses `mode con`.
+ * - On Unix-like systems, it uses `stty size`.
+ * If an error occurs or the terminal size cannot be determined, it returns null.
+ *
+ * @return The terminal size as a [TerminalSize] object, or null if the size cannot be determined.
  */
-fun KliScope.getTerminalSize(): TerminalSize = try {
+fun KliScope.getTerminalSize(): TerminalSize? = try {
     if (isWindows()) {
         getTerminalSizeWindows()
     } else {
         getTerminalSizeUnix()
     }
 } catch (_: Exception) {
-    TerminalSize(80, 24) // Fallback terminal size
+    null
 }
 
 /**
@@ -221,11 +226,13 @@ fun KliScope.supportsAnsi(): Boolean =
     !isWindows() || System.getenv("TERM")?.contains("xterm") == true
 
 /**
- * Reads a single key from the terminal without waiting for Enter.
- * On Unix, uses raw terminal mode. On Windows, it falls back to standard read.
- * Returns '?' on failure.
+ * Reads a single key input from the user. The behavior depends on the operating system.
+ * - On non-Windows systems, it uses raw mode to read a single character from the terminal.
+ * - On Windows systems, it falls back to reading a character without a raw mode.
+ *
+ * @return The character read from the input or null if an error occurs during the operation.
  */
-fun KliScope.readSingleKey(): Char = try {
+fun KliScope.readSingleKey(): Char? = try {
     if (!isWindows()) {
         ProcessBuilder(
             "sh", "-c",
@@ -239,5 +246,5 @@ fun KliScope.readSingleKey(): Char = try {
         inputStream?.read()?.toChar() ?: 'n'
     }
 } catch (_: IOException) {
-    '?' // Unknown/error key
+    null
 }
