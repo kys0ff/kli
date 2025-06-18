@@ -1,56 +1,37 @@
-## 👀 KLI — Kotlin Lightweight Interactive CLI DSL
+# 👀 KLI — Kotlin Lightweight Interactive CLI DSL
 
-**KLI** is a Kotlin library for easily building powerful, beautiful, and interactive command-line applications.
-It features a DSL-driven structure, interactive mode, progress bars, colorful outputs, and much more.
+**KLI** is a developer-friendly Kotlin library for building powerful, beautiful, and interactive command-line applications with minimal effort. It features a DSL-driven structure, interactive mode, progress bars, colorful outputs, and much more.
 
 ---
 
 ## 📜 Table of Contents
 
-- [Installation](#-installation)
-- [Quick Start](#%EF%B8%8F-quick-start)
-- [Features](#-features)
-  - [Basic CLI Setup](#-basic-cli-setup)
-  - [Adding Commands](#-adding-commands)
-  - [Interactive Mode](#-interactive-mode)
-  - [User Input Scenarios](#-user-input-scenarios)
-  - [Progress Bar Support](#-progress-bar-support)
-  - [Colorful Text Printing](#-colorful-text-printing)
-- [Configuration Options](#%EF%B8%8F-configuration-options)
-- [Available Progress Types](#-available-progress-types)
-- [Extension Functions for String Colorization](#-extension-functions-for-string-colorization)
-- [License](#-license)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [Configuration Options](#configuration-options)
+- [Feature Table](#feature-table)
+- [Global Options Table](#global-options-table)
+- [Extending and Customization](#extending-and-customization)
+- [License](#license)
 
 ---
 
 ## 🚀 Installation
 
-**First, add the JitPack repository to your `settings.gradle.kts`:**
-
-```kotlin
-pluginManagement {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://jitpack.io")
-    }
-}
-
-dependencyResolutionManagement {
-    repositories {
-        google()
-        mavenCentral()
-        maven("https://jitpack.io")
-    }
-}
-```
-
-**Then, add the dependency to your `build.gradle.kts`:**
-
+Add KLI to your Kotlin project using Gradle:
 ```kotlin
 dependencies {
-    implementation("com.github.kys0ff:kli:[latest_version]")
+    implementation("off.kys.kli:kli:<latest-version>")
 }
+```
+Or with Maven:
+```xml
+<dependency>
+    <groupId>off.kys.kli</groupId>
+    <artifactId>kli</artifactId>
+    <version>latest-version</version>
+</dependency>
 ```
 
 ---
@@ -75,14 +56,11 @@ fun main(args: Array<String>) = kli(args) {
 
 fun KliScope.greetCommand() = command("greet") {
     description = "Greets the user"
-
-    // Register args and flags for better --help output
     argument("name", "The name to greet")
     flag("shout", "Shout the greeting")
 
     action {
         val name = param() ?: readInputOrNull("Enter your name", AnsiColor.CYAN) ?: "stranger"
-        
         val greeting = "Hello, $name"
         if (getFlag("shout"))
             println(greeting.uppercase())
@@ -90,33 +68,28 @@ fun KliScope.greetCommand() = command("greet") {
     }
 }
 ```
-
 Example run:
-
 ```
-./your-app greet John
-# ➔ prints Hello, John
-
-./your-app greet John --shout
-# ➔ prints HELLO, JOHN
-```
-If you skip the name:
-
-```bash
-./your-app greet
-Enter your name: Alice
-Hello, Alice
-```
-
-Check available commands:
-
-```bash
-./your-app --help
+$ mycli greet kys0ff
+Hello, kys0ff
 ```
 
 ---
 
 ## 🌟 Features
+
+| Feature                         | Description                                                                                  |
+|----------------------------------|----------------------------------------------------------------------------------------------|
+| Easy CLI DSL                     | Declarative style for configuring commands and flags                                         |
+| Interactive Mode                 | Built-in REPL-like prompt for live user interaction                                         |
+| Arguments & Flags                | Simple registration for arguments and flags per command                                     |
+| Progress Bars & Spinners         | Built-in progress and spinner utilities                                                     |
+| Colorful Output                  | Built-in ANSI color support and extension functions                                         |
+| Global/Per-command Error Handler | Custom crash handling at global or per-command level                                        |
+| Command Help & Version           | Built-in `--help`, `-h`, and `--version` flags                                              |
+| Input Utilities                  | Read user input interactively or via arguments                                              |
+
+---
 
 ### 🔹 Basic CLI Setup
 
@@ -135,11 +108,8 @@ configure {
 ```kotlin
 command("sum") {
     description = "Adds two numbers."
-
-    // Register args
     argument("x", "First number")
     argument("y", "Second number")
-
     action {
         val x = get("x")?.toIntOrNull() ?: 0
         val y = get("y")?.toIntOrNull() ?: 0
@@ -152,140 +122,25 @@ command("sum") {
 
 ### 🔹 Interactive Mode
 
-When no arguments are passed, CLI enters interactive mode automatically. Missing arguments can be interactively requested:
-
+Enable interactive mode (REPL-style):
 ```kotlin
-import off.kys.kli.io.readInput
-
-command("multiply") {
-    description = "Multiplies two numbers interactively if missing."
-
-    action {
-        val x = get("num1")?.toIntOrNull()
-            ?: readInput("Enter first number: ").toIntOrNull() ?: 1
-
-        val y = get("num2")?.toIntOrNull()
-            ?: readInput("Enter second number: ").toIntOrNull() ?: 1
-
-        println("Result: ${x * y}")
-    }
+configure {
+    interactiveMode = InteractiveMode(enabled = true)
 }
 ```
-
-Example session:
-
-```
-Welcome to CoolTool interactive mode!
-Type 'help' for available commands, 'exit' to quit
-CoolTool> multiply
-Enter first number: 6
-Enter second number: 7
-Result: 42
-CoolTool> exit
-Goodbye!
-```
+- Type `help` to list commands, `exit` to quit.
+- Each command and flag is available interactively.
 
 ---
 
 ### 🔹 User Input Scenarios
 
-#### Password Input
-
+Prompt for input if argument is not supplied:
 ```kotlin
-command("setPassword") {
-    description = "Set a secure password."
-
-    action { 
-        val password = readPassword("Enter your password")
-        if (password.isNullOrBlank()) {
-            println("Password not set. Operation cancelled.")
-        } else {
-            println("Your password has been set!")
-            // You can store or hash the password here
-        }
-    }
+action {
+    val name = param() ?: readInputOrNull("Enter your name", AnsiColor.CYAN) ?: "stranger"
+    println("Hello, $name")
 }
-```
-
-Example run:
-
-```pgsql
-./your-app setPassword
-Enter your password: ••••••
-Your password has been set!
-```
-
-#### Confirmation Prompt
-
-```kotlin
-command("delete") {
-    description = "Delete a file after confirmation."
-
-    argument("file", "The file path to delete")
-    flag("force", "Skip confirmation")
-
-    action {
-        val filePath = param()
-            ?: readInputOrNull("Enter file path to delete") ?: return@action
-
-        val shouldDelete = getFlag("force")
-            || confirm("Are you sure you want to delete '$filePath'?")
-
-        if (shouldDelete) {
-            println("File '$filePath' deleted!") // Replace with actual file delete logic
-        } else {
-            println("Operation cancelled.")
-        }
-    }
-}
-```
-
-#### Select from Options
-
-```kotlin
-command("chooseColor") {
-    description = "Choose a color from the list."
-
-    argument("color", "Color name (Red, Green, Blue, Yellow)")
-
-    action {
-        val colors = listOf("Red", "Green", "Blue", "Yellow")
-        val inputColor = get("color") ?: select(colors)
-        println("You selected: $inputColor")
-    }
-}
-```
-
-#### Select Menu with Title
-
-```kotlin
-command("chooseFruit") {
-    description = "Select your favorite fruit from the menu."
-
-    argument("fruit", "Fruit name (Apple, Banana, Cherry, Date)")
-
-    action {
-        val fruits = listOf("Apple", "Banana", "Cherry", "Date")
-        val selectedFruit = get("fruit") ?: selectMenu("Pick your favorite fruit:", fruits)
-        println("You chose: $selectedFruit!")
-    }
-}
-```
-
-Example session:
-
-```
-CoolTool> chooseFruit
-Pick your favorite fruit:
-1) Apple
-2) Banana
-3) Cherry
-4) Date
-Enter choice (1-4)
-CoolTool> 2
-You chose: Banana!
-CoolTool> exit
-Goodbye!
 ```
 
 ---
@@ -293,94 +148,79 @@ Goodbye!
 ### 🔹 Progress Bar Support
 
 ```kotlin
-import off.kys.kli.dsl.progress.progressBar
-import off.kys.kli.ui.progress.util.ProgressType
-import off.kys.kli.ui.progress.util.SpinnerStyle
-
-progressBar {
-    type = ProgressType.SPINNER
-    spinnerStyle = SpinnerStyle.PIPE
-    width = 40
-    prefix = "Working"
-    suffix = "%"
-    start {
-        val total = 100
-        for (i in 1..total) {
-            update(i)
-            Thread.sleep(20)
-        }
+progressBar("Working...") {
+    for (i in 1..100) {
+        step()
+        Thread.sleep(10)
     }
 }
 ```
+- Progress types: bar, spinner, etc.
 
 ---
 
 ### 🔹 Colorful Text Printing
 
 ```kotlin
-import off.kys.kli.utils.extensions.println
-import off.kys.kli.utils.extensions.State
-
-println("Success!", State.SUCCESS)
-println("Warning!", State.WARNING)
-println("An error occurred!", State.ERROR)
-
-import off.kys.kli.io.AnsiColor
-
-println(AnsiColor.colorize("Important!", AnsiColor.BRIGHT_RED))
-println("Important!", AnsiColor.RED)
+println("This is ".bold() + "bold".italic().color(AnsiColor.BRIGHT_YELLOW))
 ```
+Or use extension functions for colorization and styles.
 
 ---
 
 ## ⚙️ Configuration Options
 
-| Property                    | Default                  | Description                                          |
-|------------------------------|---------------------------|------------------------------------------------------|
-| name                         | null                      | CLI app name shown in interactive mode and help      |
-| version                      | null                      | CLI app version                                      |
-| description                  | null                      | CLI app description                                 |
-| showInteractiveModeMessage   | true                      | Show welcome message in interactive mode             |
-| showGoodbyeMessage           | true                      | Show goodbye message when exiting                   |
-| showUsageOnError             | true                      | Show help if wrong command used                     |
-| showPrompt                   | true                      | Show CLI prompt in interactive mode                 |
-| promptColor                  | AnsiColor.BRIGHT_CYAN     | Prompt text color                                   |
-| greetingColor                | AnsiColor.BRIGHT_GREEN    | Greeting text color                                 |
-| goodbyeColor                 | AnsiColor.BRIGHT_GREEN    | Goodbye text color                                  |
+| Option                  | Type              | Default                    | Purpose                                 |
+|-------------------------|-------------------|----------------------------|-----------------------------------------|
+| `name`                  | String            | `"null"`                   | CLI application display name            |
+| `version`               | String            | `"null"`                   | CLI version string                      |
+| `description`           | String            | `"null"`                   | CLI one-line description                |
+| `interactiveMode`       | InteractiveMode   | see below                  | Interactive mode settings               |
+| `showUsageOnError`      | Boolean           | `true`                     | Show usage automatically on error       |
+| `showPrompt`            | Boolean           | `true`                     | Show prompt in interactive mode         |
+| `colors`                | ApplicationColors | predefined (customizable)  | Output color palette                    |
+
+**InteractiveMode options:**
+- `enabled`: Enable/disable REPL
+- `greet`: Greeting message and color
+- `goodBye`: Farewell message and color
 
 ---
 
-## 🧹 Available Progress Types
+## 🧩 Feature Table
 
-| ProgressType | Description                           |
-|--------------|---------------------------------------|
-| BAR          | Standard filled progress bar (=====)  |
-| SPINNER      | Animated spinner (configurable style) |
-| DOTS         | Growing dots animation (...)          |
-| BLOCKS       | Progress bar using blocks (▓░)         |
-| PULSE        | Simple left/right pulse arrows (← →)   |
-
----
-
-
-## ⚙️ Extension Functions for String Colorization
-
-| Function Name    | Description                                                                                              |
-| ---------------- | -------------------------------------------------------------------------------------------------------- |
-| `color(color)`    | Applies the specified `AnsiColor` to the string. Displays the string in the chosen color in supported terminals. |
-| `bold()`          | Makes the string bold.                                                                                   |
-| `faint()`         | Makes the string faint (light).                                                                          |
-| `italic()`        | Makes the string italic.                                                                                 |
-| `underline()`     | Underlines the string.                                                                                    |
-| `slowBlink()`     | Applies a slow blink effect to the string.                                                                |
-| `rapidBlink()`    | Applies a rapid blink effect to the string.                                                               |
-| `reversed()`      | Reverses the color scheme of the string.                                                                  |
-| `conceal()`       | Conceals (hides) the string.                                                                              |
-| `crossedOut()`    | Crosses out (strikes through) the string.                                                                 |
+| Area                | Supported Features                                         |
+|---------------------|-----------------------------------------------------------|
+| Command Registration| Named commands, arguments, flags, help text               |
+| Execution Modes     | Arguments mode, Interactive (REPL) mode                   |
+| User Input          | Positional args, interactive prompts, defaults            |
+| Output              | Colors, bold/italic, tables, progress bars                |
+| Error Handling      | Custom global/per-command crash handler                    |
+| Help & Version      | `help` command, `--help`/`-h`/`--version` flags           |
 
 ---
 
-## 📄 License
+## 🛠️ Global Options Table
 
-This project is licensed under the MIT License.
-Feel free to use it in your personal and commercial projects!
+| Option/Flag   | Description                        |
+|---------------|------------------------------------|
+| `--help, -h`  | Show help message                  |
+| `--version`   | Show version info                  |
+
+---
+
+## 🧩 Extending and Customization
+
+- **Register Commands:** Use `command(name)` and supply a description, arguments, flags, and an `action { }` block.
+- **Global Config:** Use `configure { ... }` to set metadata and output styles.
+- **Crash Handling:** Assign `onCrash = { e -> ... }` to handle exceptions globally.
+- **Progress & Spinners:** Use `progressBar("msg") { ... }` and spinner DSLs.
+- **Color Output:** Use extension functions like `.bold()`, `.italic()`, `.color(AnsiColor.BRIGHT_GREEN)` on strings.
+
+---
+
+## 📝 License
+
+[MIT](./LICENSE)
+
+---
