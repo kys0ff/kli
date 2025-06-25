@@ -22,7 +22,7 @@
 Add KLI to your Kotlin project using Gradle:
 ```kotlin
 dependencies {
-    implementation("off.kys.kli:kli:<latest-version>")
+    implementation("off.kys:kli:<latest-version>")
 }
 ```
 Or with Maven:
