@@ -19,16 +19,27 @@
 
 ## 🚀 Installation
 
-Add KLI to your Kotlin project using Gradle:
+Add KLI to your Kotlin project in your build.gradle.kts:
 ```kotlin
 dependencies {
-    implementation("off.kys:kli:<latest-version>")
+    implementation("com.github.kys0ff:kli:<latest-version>")
+}
+```
+
+And in your settings.gradle.kts at the end of repositories:
+```kotlin
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+    }
 }
 ```
 Or with Maven:
 ```xml
 <dependency>
-    <groupId>off.kys.kli</groupId>
+    <groupId>com.github.kys0ff</groupId>
     <artifactId>kli</artifactId>
     <version>latest-version</version>
 </dependency>
