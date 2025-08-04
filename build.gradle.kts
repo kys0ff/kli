@@ -3,7 +3,7 @@ plugins {
     `maven-publish`
 }
 
-val globalVersion = "v0.1.6"
+val globalVersion = "v0.1.7"
 
 group = "com.github.kys0ff"
 version = globalVersion
