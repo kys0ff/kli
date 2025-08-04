@@ -1,10 +1,5 @@
-@file:Suppress("SpellCheckingInspection")
-
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
-
 plugins {
     kotlin("jvm") version "2.0.21"
-    id("com.github.johnrengelman.shadow") version "7.1.2"
     `maven-publish`
 }
 
@@ -18,18 +13,7 @@ repositories {
 }
 
 kotlin {
-    jvmToolchain(17)
-}
-
-tasks.test {
-    useJUnitPlatform()
-}
-
-tasks.withType<ShadowJar> {
-    archiveClassifier.set("")
-    manifest {
-        attributes["Main-Class"] = "off.kys.MainKt"
-    }
+    jvmToolchain(11)
 }
 
 publishing {
