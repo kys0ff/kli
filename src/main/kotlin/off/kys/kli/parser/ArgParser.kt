@@ -151,7 +151,7 @@ class ArgParser(
     /**
      * Retrieves a list of all positional parameters.
      *
-     * This method returns all values that were passed as positional parameters (i.e., without flags or keys).
+     * This method returns all values passed as positional parameters (i.e., without flags or keys).
      *
      * Example:
      * ```

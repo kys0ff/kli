@@ -58,9 +58,7 @@ class Command(
      * @param name The name to check (can be null).
      * @return `true` if the name is a registered argument or flag.
      */
-    fun isRegisteredParamOrArg(name: String?): Boolean {
-        return arguments.any { it.name == name } || flags.any { it.name == name }
-    }
+    fun isRegisteredParamOrArg(name: String?): Boolean = arguments.any { it.name == name } || flags.any { it.name == name }
 
     /**
      * Sets the command's logic to be executed when invoked.

@@ -45,7 +45,7 @@ import off.kys.kli.utils.extensions.println
  * 4. If an error occurs, the crash handler (if defined) is invoked, or a default error message is printed.
  *
  * **Parameters**:
- * - `args`: Command-line arguments for the KLI. Defaults to an empty array.
+ * - `args`: Command-line arguments for the KLI. Default to an empty array.
  * - `block`: The configuration block used to set up commands and options within the KLI.
  */
 @KliMarker

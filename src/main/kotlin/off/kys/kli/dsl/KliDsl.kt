@@ -73,7 +73,7 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
     /**
      * Executes the command-line interface logic based on the provided arguments.
      *
-     * If the arguments array is empty, the tool enters interactive mode. Otherwise, the provided arguments
+     * If the argument array is empty, the tool enters interactive mode. Otherwise, the provided arguments
      * are processed to execute commands or flags.
      *
      * @param args The array of arguments passed to the CLI.
@@ -93,7 +93,7 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
         val cliArgs = ArgParser.from(args)
         val cmdName = cliArgs.getParams().firstOrNull()
 
-        // If first argument is "help" (or --help / -h)
+        // If the first argument is "help" (or --help / -h)
         when (args.firstOrNull()?.lowercase()) {
             "help", "--help", "-h" -> {
                 showHelp()
@@ -104,11 +104,11 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
         val cmd = commands.find { it.name == cmdName }
 
         when {
-            cliArgs.getFlag("version") -> showVersion() // Show version if the flag is present.
+            cliArgs.getFlag("version") -> showVersion() // Show a version if the flag is present.
             cmd != null -> handleCommandExecution(cliArgs) // Execute command if it exists.
             cliArgs.isEmpty() -> showHelp()
             else -> {
-                println("Invalid usage", State.ERROR) // Show error message for invalid arguments.
+                println("Invalid usage", State.ERROR) // Show an error message for invalid arguments.
                 if (config.showUsageOnError) { // Optionally show usage on error.
                     println()
                     showHelp()
@@ -163,7 +163,7 @@ class KliDsl(private val config: KliConfig = KliConfig()) {
             println(
                 config.interactiveMode.goodBye!!.message,
                 config.interactiveMode.goodBye!!.color
-            ) // Show goodbye message when exiting interactive mode.
+            ) // Show goodbye a message when exiting interactive mode.
     }
 
     /**

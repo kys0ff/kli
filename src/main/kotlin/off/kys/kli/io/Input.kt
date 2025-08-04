@@ -243,7 +243,7 @@ fun KliScope.readSingleKey(): Char? = try {
             .inputStream.read().toChar()
     } else {
         // Basic fallback for Windows, no raw mode
-        inputStream?.read()?.toChar() ?: 'n'
+        inputStream?.read()?.toChar()
     }
 } catch (_: IOException) {
     null

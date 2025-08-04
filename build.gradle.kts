@@ -8,8 +8,10 @@ plugins {
     `maven-publish`
 }
 
+val globalVersion = "v0.1.6"
+
 group = "com.github.kys0ff"
-version = "v0.1.3"
+version = globalVersion
 
 repositories {
     mavenCentral()
@@ -37,7 +39,7 @@ publishing {
 
             groupId = "com.github.kys0ff"
             artifactId = "kli"
-            version = "v0.1.3"
+            version = globalVersion
 
             pom {
                 name.set("kli")
