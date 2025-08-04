@@ -47,6 +47,7 @@ import off.kys.kli.utils.extensions.println
  * **Parameters**:
  * - `args`: Command-line arguments for the KLI. Default to an empty array.
  * - `block`: The configuration block used to set up commands and options within the KLI.
+ *
  */
 @KliMarker
 fun kli(args: Array<String>, block: KliDsl.() -> Unit) {

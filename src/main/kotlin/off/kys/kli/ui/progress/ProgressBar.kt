@@ -1,5 +1,3 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "unused")
-
 package off.kys.kli.ui.progress
 
 import off.kys.kli.ui.progress.util.ProgressType

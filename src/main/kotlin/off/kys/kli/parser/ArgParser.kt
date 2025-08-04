@@ -1,5 +1,3 @@
-@file:Suppress("MemberVisibilityCanBePrivate", "KDocUnresolvedReference", "unused")
-
 package off.kys.kli.parser
 
 import off.kys.kli.core.Command

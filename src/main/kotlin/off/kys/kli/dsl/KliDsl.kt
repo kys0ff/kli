@@ -1,5 +1,3 @@
-@file:Suppress("MemberVisibilityCanBePrivate")
-
 package off.kys.kli.dsl
 
 import off.kys.kli.core.Command

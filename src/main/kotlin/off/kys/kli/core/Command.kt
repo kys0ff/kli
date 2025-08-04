@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package off.kys.kli.core
 
 import off.kys.kli.core.config.KliConfig

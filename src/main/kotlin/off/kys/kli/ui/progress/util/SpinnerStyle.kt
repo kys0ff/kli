@@ -1,6 +1,7 @@
-@file:Suppress("unused")
-
 package off.kys.kli.ui.progress.util
+
+import off.kys.kli.ui.progress.util.SpinnerStyle.*
+
 
 /**
  * Enum class representing different spinner animation styles for progress indicators.
@@ -31,7 +32,7 @@ enum class SpinnerStyle(val frames: List<String>, val intervalMs: Int = 100) {
     /** A spinner using animated dots: ⠋, ⠙, ⠹, etc. */
     DOTS(listOf("⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏")),
 
-    /** A bouncing bar that fills and empties: [    ], [=   ], [==  ], etc. */
+    /** A bouncing bar that fills and empties: [    ] [=   ], [==  ], etc. */
     BOUNCING_BAR(listOf("[    ]", "[=   ]", "[==  ]", "[=== ]", "[ ===]", "[  ==]", "[   =]")),
 
     /** A spinner using rotating directional arrows: ←, ↖, ↑, ↗, etc. */

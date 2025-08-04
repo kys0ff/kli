@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package off.kys.kli.io
 
 import off.kys.kli.errors.UnsupportedConsoleException
